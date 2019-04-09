@@ -2,7 +2,7 @@
 layout: post
 title:  "Testing MathJax in Markdown"
 date:   2019-04-08 00:18:23 +0700
-categories: [markdown]
+categories: [others]
 ---
 
 The Einstein's Equation is given by
