@@ -1,0 +1,57 @@
+title: Fun With Python
+description: My Personal Python Problems
+author: Vikrant Kamble
+github: https://github.com/vikrantkamble
+about: I'm an astronomer aspiring to be a data scientist/programmer
+disqus_shortname: stackproblems
+google_analytics: UA-XXXXXXXX-Y
+avatar_url: /static/img/DSC_0104.JPG
+
+enableTags: true
+tagarray: []
+
+collections:
+  project:
+    output: true
+    permalink: /project/:path/
+
+social:
+    - icon: fa-facebook
+      link: "https://www.facebook.com/vikrant10622"
+    - icon: fa-twitter
+      link: "#"
+    - icon: fa-linkedin
+      link: "https://www.linkedin.com/in/vikrant-a-kamble/"
+    - icon: fa-stack-exchange
+      link: "#"
+    - icon: fa-github
+      link: "https://github.com/VikrantKamble"
+
+share:
+  twitter_username: github.io
+  fb_appid: 1749788565247320
+
+urls:
+    - text: About Me
+      url: /about/
+    - text: My Projects
+      url: /projects/
+    - text: XML Feed
+      url: /feed.xml
+
+url: "https://vikrantkamble.github.io"
+baseurl: ""
+paginate: 20
+per_page: 20
+paginate_path: "/page/:num/"
+markdown: kramdown
+gems:
+  - jekyll-paginate
+  - jekyll-gist
+
+compress_html:
+  clippings: all
+  comments: ["<!-- ", " -->"]
+  endings: all
+  ignore:
+    envs: ['development']
