@@ -29,7 +29,7 @@ $$
         \end{align}
 $$
 
-![composite](/code/pdf-of-function.png){:class="img-responsive"}
+![composite](/static/img/pdf-of-function.png){:class="img-responsive"}
 
 2.
  Flux transmission:
