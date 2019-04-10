@@ -22,11 +22,11 @@ Let's look at a few examples:
     LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have lognormal distribution. Let's find its pdf using the above relation.
 
 $$
-        \begin{align}
+        \begin{align*}
         g_Y(y) &= f_X(x) (dx / dy) \\
                &= \frac{1}{2 \pi \sigma^2} e^{-\frac{(x -\mu)^2}{2 \sigma^2}} \frac{1}{y} \\
                &= \frac{1}{2 \pi y \sigma^2} e^{-\frac{(\ln y -\mu)^2}{2 \sigma^2}}
-        \end{align}
+        \end{align*}
 $$
 
 ![composite](/static/img/pdf-of-function.png){:class="img-responsive"}
