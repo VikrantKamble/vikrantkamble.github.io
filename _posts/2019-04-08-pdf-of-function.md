@@ -19,7 +19,7 @@ $$f_X(x)\ dx = g_Y(y)\ dy$$
 Let's look at a few examples:
 
 1.
-    LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have lognormal distribution. Let's find its pdf using the above relation.
+    LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have [lognormal distribution](https://en.wikipedia.org/wiki/Log-normal_distribution). Let's find its pdf using the above relation.
 <!-- $$
 \begin{align}
 g_Y(y) &= f_X(x) (dx / dy) \\
