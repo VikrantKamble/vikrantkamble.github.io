@@ -9,30 +9,41 @@ Many-a-time when working with model fitting to data, one encounters a
 situation where one need to find the probability distribution of a random
 variable, which itself is a function of another random variable.
 
-$y = f(x)$, if $x \sim f_X(x)$, then $y \sim ?$
+
+>Given that $x$ has a probability distribution $pdf_X(x)$, and that the variable $y$ is related to $x$ as $y = f(x)$, what is the probability distribution function of $y$?
 
 Naively, one might think for a given value $y'$, one can just *pick up* its
 probability as $f_X(x')$, where $y' = f(x')$. This is not correct. One should **understand** that the probability of a single point has no meaning, it is the probability of finding something in a **given interval** that is conserved across transformations. In other words -
 
-$$f_X(x)\ dx = g_Y(y)\ dy$$
+
+$$pdf_X(x)\ dx = pdf_Y(y)\ dy, \qquad \mathrm{where}\ dy = f'(x)\ dx$$
+
+
+{:.mycenter}
+![](/static/img/xkcd.png)
+
+<style>
+.mycenter {
+    text-align:center;
+    display: block;
+    margin: 0 auto;
+}
+</style>
 
 Let's look at a few examples:
 
 1.
     LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have [lognormal distribution](https://en.wikipedia.org/wiki/Log-normal_distribution). Let's find its pdf using the above relation.
-<!-- $$
+
+
+
+$$
 \begin{align}
-g_Y(y) &= f_X(x) (dx / dy) \\
-       &= \frac{1}{2 \pi \sigma^2} e^{-\frac{(x -\mu)^2}{2 \sigma^2}} \frac{1}{y} \\
-       &= \frac{1}{2 \pi y \sigma^2} e^{-\frac{(\ln y -\mu)^2}{2 \sigma^2}}
+g_Y(y) &= f_X(x) \frac{dx}{dy} \\
+&= \frac{1}{2 \pi \sigma^2} e^{-\frac{(x -\mu)^2}{2 \sigma^2}} \frac{1}{y} =  \frac{1}{2 \pi y \sigma^2} e^{-\frac{(\ln y -\mu)^2}{2 \sigma^2}}
 \end{align}
-$$ -->
+$$
 
-$$g_Y(y) = f_X(x) (dx / dy)$$
-
-$$\quad = \frac{1}{2 \pi \sigma^2} e^{-\frac{(x -\mu)^2}{2 \sigma^2}} \frac{1}{y}$$
-
-$$\quad = \frac{1}{2 \pi y \sigma^2} e^{-\frac{(\ln y -\mu)^2}{2 \sigma^2}}$$
 
 ![composite](/static/img/pdf-of-function.png){:class="img-responsive"}
 
