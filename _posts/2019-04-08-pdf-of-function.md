@@ -5,18 +5,25 @@ date:   2019-04-08 00:18:23 +0700
 categories: [statistics]
 ---
 
+<blockquote>
+    ``The Calculus required continuity, and continuity was supposed to require the infinitely little; but nobody could discover what the infinitely little might be."
+    <p> &emsp;&emsp;&emsp;&emsp; -- Bertrand Russell in Mysticism and Logic and Other Essays, The Floating Press, 1 August 2010, p.100</p>
+</blockquote>
+
+
+
 Many-a-time when working with model fitting to data, one encounters a
 situation where one need to find the probability distribution of a random
 variable, which itself is a function of another random variable.
 
 
->Given that $x$ has a probability distribution $pdf_X(x)$, and that the variable $y$ is related to $x$ as $y = f(x)$, what is the probability distribution function of $y$?
+> Given that $x$ has a probability distribution $pdf_X(x)$, and that the variable $y$ is related to $x$ as $y = f(x)$, what is the probability distribution function of $y$?
 
 Naively, one might think for a given value $y'$, one can just *pick up* its
-probability as $f_X(x')$, where $y' = f(x')$. This is not correct. One should **understand** that the probability of a single point has no meaning, it is the probability of finding something in a **given interval** that is conserved across transformations. In other words -
+probability as $f_X(x')$, where $y' = f(x')$. This is correct when $x$ is a discrete random variable and we are talking about probability mass function. However, when $x$ is a continuous random variable, this approach gives *wrong* results. For the continuous case, the probability of a single point has no meaning. Rather, it is the probability of finding something in a *given interval* that is conserved across transformations. Making the interval become infinitesimal, we can approximate the area under the curve by a rectangle as shown in the figure. This area (mass) is the same when we transform to the variable $y$. In other words the following equality holds:
 
 
-$$pdf_X(x)\ dx = pdf_Y(y)\ dy, \qquad \mathrm{where}\ dy = f'(x)\ dx$$
+$$\mathrm{pdf}_X(x)\ dx = \mathrm{pdf}_Y(y)\ dy, \qquad ......dy = f'(x)\ dx$$
 
 
 {:.mycenter}
@@ -38,10 +45,7 @@ Let's look at a few examples:
 
 
 $$
-\begin{align}
-g_Y(y) &= f_X(x) \frac{dx}{dy} \\
-&= \frac{1}{2 \pi \sigma^2} e^{-\frac{(x -\mu)^2}{2 \sigma^2}} \frac{1}{y} =  \frac{1}{2 \pi y \sigma^2} e^{-\frac{(\ln y -\mu)^2}{2 \sigma^2}}
-\end{align}
+g_Y(y) = f_X(x) \frac{dx}{dy} = \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\displaystyle \frac{(x -\mu)^2}{2 \sigma^2}} \left(\frac{1}{y}\right) =  \frac{1}{\sqrt{2 \pi  \sigma^2}y} e^{-\displaystyle \frac{(\ln y -\mu)^2}{2 \sigma^2}}
 $$
 
 
