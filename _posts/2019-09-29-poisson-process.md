@@ -35,7 +35,7 @@ Plotted are the arrival times(in seconds) of the first 20 drops that I simulated
   <img src="/static/img/drops.png" width="400"/>
 </p>
 
-When you go out carrying your cup of tea which of the intervals(region between two drops) above are you more likely to hit. Obviously the regions with larger width. However these larger width regions also occurs less frequently (Refer fig. 2). So the probability distribution of encountering region $R$ of interval size $T$ is:
+When you go out carrying your cup of tea which of the intervals(region between two drops) above are you more likely to hit. Obviously the regions with larger width. In other words, regions with larger width are oversampled. However these larger width regions also occurs less frequently (Refer fig. 2). So the probability distribution of encountering region $R$ of interval size $T$ is:
 
 $$
 P(\mathrm{Region}\ R\ \mathrm{of\ size}\ T) = \lambda^2 T\ e^{-\lambda T}
@@ -55,7 +55,7 @@ A take on this interesting phenomenon in case of bus arrival times, known as the
   When waiting for a bus that comes on average every 10 minutes, your average waiting time will be 10 minutes.
 </blockquote>
 
-A nice discussion on this paradox can be found in this [post](https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/) by Jake Vanderplas.
+A nice discussion on this paradox can be found in this [post](https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/) by Jake Vanderplas. The waiting time paradox is a specific example of the [*inspection paradox*](https://towardsdatascience.com/the-inspection-paradox-is-everywhere-2ef1c2e9d709).
 
 Let's continue on our journey of exploring distributions via raindrops. You now ask, what is the time interval between $n$ consecutive raindrops? There are $n-1$ intervals between $n$ consecutive raindrops, with each interval having a size $t$ given by the exponential distribution. So what we want is the random variable which is the sum of $k = n-1$ exponentially distributed random variables. The pdf of this random variable is the [Gamma distribution](https://en.wikipedia.org/wiki/Gamma_distribution):
 
