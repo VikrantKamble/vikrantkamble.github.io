@@ -201,11 +201,11 @@ div.col-sm-3 img.profile-avatar {
 }
 
 blockquote {
-      font-style: italic;
-      font-weight: 300;
-     font-size: 14px;
-     width: 90% !important;
-     background-color: #fff !important;
+    font-style: italic !important;
+    font-weight: 300 !important;
+    font-size: 14px !important;
+    width: 90% !important;
+    background-color: #fff !important;
  }
 
 .center {
