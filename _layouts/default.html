@@ -20,7 +20,7 @@ layout: compress
       src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG">
     </script>
 
-    <script type="text/x-mathjax-config">
+<!--     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
           extensions: ["tex2jax.js"],
           jax: ["input/TeX", "output/HTML-CSS"],
@@ -31,7 +31,19 @@ layout: compress
           },
           "HTML-CSS": { availableFonts: ["TeX"] }
       });
-    </script>
+    </script> -->
+    <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$','$$'], ["\\[","\\]"]]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+  </script>
+
 
 
 <!--     <script type="text/javascript" src="http://latex.codecogs.com/latexit.js"></script> -->
