@@ -43,9 +43,9 @@ $$L = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\p
 
 Remember, $f(d_\perp)$ gives the probability of belonging to class $y=1$. So if a data-point belongs to $y=-1$ we need to use $1 - f(d_\perp)$.
 
-$$\begin{align} \mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) &= \prod_{i=1}^n \left[\mathcal{I}(y_i = 1) \frac{e^{x_i^T w}}{1 + e^{x_i^T w}} \right] \left[\mathcal{I}(y_i = -1) \left(1 - \frac{e^{x_i^T w}}{1 + e^{x_i^T w}} \right) \right] \\ &= \prod_{i=1}^n \frac{e^{y_i x_i^T w}}{1 + e^{y_i x_i^T w}}\end{align}$$
+$$\begin{align*} \mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) &= \prod_{i=1}^n \left[\mathcal{I}(y_i = 1) \frac{e^{x_i^T w}}{1 + e^{x_i^T w}} \right] \left[\mathcal{I}(y_i = -1) \left(1 - \frac{e^{x_i^T w}}{1 + e^{x_i^T w}} \right) \right] \\ &= \prod_{i=1}^n \frac{e^{y_i x_i^T w}}{1 + e^{y_i x_i^T w}}\end{align*}$$
 
 Writing in terms of log-likelihood this becomes:
 
-$$ \begin{align} \log\ \mathcal{L} &= \sum_{i=1}^n \log [e^{y_i x_i^T w}] - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \\
-&= \sum_{i=1}^n y_i x_i^T w - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \end{align}$$
+$$ \begin{align*} \log\ \mathcal{L} &= \sum_{i=1}^n \log [e^{y_i x_i^T w}] - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \\
+&= \sum_{i=1}^n y_i x_i^T w - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \end{align*}$$
