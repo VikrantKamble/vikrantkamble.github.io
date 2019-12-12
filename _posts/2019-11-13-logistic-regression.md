@@ -33,6 +33,22 @@ The functional form used by Logistic regression is:
 
 $$\mathrm{Prob}[x \in (y=1)] = f(d_\perp) = \frac{e^{d_\perp}}{1 + e^{d_\perp}} = \frac{e^{x^T w}}{1 + e^{x^T w}}$$
 
+---
+
+One common terminology used in this regards is that of *Odds*. It is defined as:
+
+$$
+Odds = \frac{P(y = 1)}{P(y = -1)} = \frac{P(y = 1)}{1 - P(y = 1)}
+$$
+
+The domain of Odds lies in the range $[0, \infty)$. The natural logarithm of the above quantity is called *Log Odds* which lies in the range $(-\infty, \infty)$. This can be shown to be
+
+$$Log\ Odds = x^T w$$
+
+Thus we can interpret coefficient corresponding to a given predicting variable as: **the change in log odds for a unit change in a given variable keeping the rest variables fixed.**
+
+---
+
 Our goal in now to estimate the value of the parameters of the model, $w$, from training data. However, to assess which values of the parameters are *good*, we have to first define the likelihood. Under the assumption that each data-point is independent of every other data-point, we have:
 
 $$\mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\perp^i)][\mathcal{I}(y_i = -1) 1 - f(d_\perp^i)] $$
