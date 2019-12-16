@@ -33,9 +33,11 @@ $$
 
 Given the pattern we can write
 
+<p>
 $$
 T^k = \begin{bmatrix} Q^k & R(I + Q + Q^2 + ... + Q^k) \\ 0 & I \end{bmatrix}
 $$
+</p>
 
 Using the summation formula for a geometric sequence we can write:
 
