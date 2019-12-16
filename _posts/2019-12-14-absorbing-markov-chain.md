@@ -8,7 +8,7 @@ At this point, we can make an observation:
 
 Let's say we have $n$ transient states and $m$ absorbing states in the state space of any system. The transition matrix for such a system can be written as:
 
-$$T = \begin{pmatrix} Q & R \\ 0 & I \end{pmatrix},$$
+$$T = \left[ \begin{matrix} Q & R \\ 0 & I \end{matrix} \right],$$
 
 where $Q$ of shape ($n \times n$) gives the probability of transitioning from transient state $i$ to transient state $j$. The matrix $R$ of shape $n \times m$ gives the probability of transitioning from transient state $i$ to absorbing state $j$, and $I$ of identity matrix of shape $m$.
 
