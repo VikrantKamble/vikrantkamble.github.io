@@ -8,7 +8,7 @@ At this point, we can make an observation:
 
 Let's say we have $n$ transient states and $m$ absorbing states in the state space of any system. The transition matrix for such a system can be written as:
 
-$$T = \left[ \begin{matrix} Q & R \\ 0 & I \end{matrix} \right],$$
+<p>$$T = \left[ \begin{matrix} Q & R \\ 0 & I \end{matrix} \right],$$</p>
 
 where $Q$ of shape ($n \times n$) gives the probability of transitioning from transient state $i$ to transient state $j$. The matrix $R$ of shape $n \times m$ gives the probability of transitioning from transient state $i$ to absorbing state $j$, and $I$ of identity matrix of shape $m$.
 
@@ -33,17 +33,11 @@ $$
 
 Given the pattern we can write
 
-<p>
-$$
-T^k = \begin{bmatrix} Q^k & R(I + Q + Q^2 + ... + Q^k) \\ 0 & I \end{bmatrix}
-$$
-</p>
+<p>$$T^k = \begin{bmatrix} Q^k & R(I + Q + Q^2 + ... + Q^k) \\ 0 & I \end{bmatrix}$$</p>
 
 Using the summation formula for a geometric sequence we can write:
 
-$$
-T^k = \begin{bmatrix} Q^k & R \left(\frac{I - Q^k}{I - Q}\right) \\ 0 & I \end{bmatrix}
-$$
+<p>$$ T^k = \begin{bmatrix} Q^k & R \left(\frac{I - Q^k}{I - Q}\right) \\ 0 & I \end{bmatrix} $$</p>
 
 From the above formula, we note that:
 <blockquote>
@@ -52,7 +46,7 @@ From the above formula, we note that:
 
 The entries of $Q$ are all smaller than 1, given that these are probabilities. Hence we have $\lim_{k \to \infty} Q^k = 0$. This allows us to write
 
-$$T^\infty = \begin{bmatrix} 0 & R \left(\frac{1}{I - Q}\right) \\ 0 & I \end{bmatrix} = \begin{bmatrix} 0 & NR \\ 0 & I \end{bmatrix},$$
+<p>$$T^\infty = \begin{bmatrix} 0 & R \left(\frac{1}{I - Q}\right) \\ 0 & I \end{bmatrix} = \begin{bmatrix} 0 & NR \\ 0 & I \end{bmatrix},$$</p>
 
 where $N = [I - Q]^{-1}$ is known as the fundamental matrix. The $0's$ in the first column of the above matrix proves statement given in blockquote 0.
 
@@ -150,16 +144,18 @@ $$T = \begin{bmatrix} 0 & 1/4 & 1/4 & 1/4 & 1/4 & 0 & 0 \\
 
 where the labels corresponds to the index as given in $S$. The fundamental matrix then becomes:
 
+<p>
 $$N = [I - Q]^{-1} = \begin{bmatrix} 1 & 0 & 0  & 0 & 0 \\
                       0 & 1 & 0 & 0 & 0 \\
                       0 & 0 & 1 & 0 & 0\\
                       0 & 0 & 0 & 1 & 0\\
                       0 & 0 & 0 & 0 & 1\\ \end{bmatrix},
 $$
+</p>
 
 where the $Q$ matrix is shown in green box. Following blockquote 2. the required matrix is given by:
 
-$$P = NR = \begin{bmatrix} 5/8 & 3/8 \\ 1 & 0 \\ 1/2 & 1/2 \\ 1/2 & 1/2 \\1/2 & 1/2 \end{bmatrix},$$
+<p>$$P = NR = \begin{bmatrix} 5/8 & 3/8 \\ 1 & 0 \\ 1/2 & 1/2 \\ 1/2 & 1/2 \\1/2 & 1/2 \end{bmatrix},$$</p>
 
 where $R$ is the matrix shown in blue. Thus the probability of starting from $\phi$ and ending up in the $HHT$ state is $5/8$, while ending up in the $THT$ state is $3/8$.
 
