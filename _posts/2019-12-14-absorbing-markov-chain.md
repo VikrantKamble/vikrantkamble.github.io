@@ -167,4 +167,55 @@ where the $Q$ matrix is shown in green box. Following blockquote 2. the required
 
 where $R$ is the matrix shown in blue. Thus the probability of starting from $\phi$ and ending up in the $HHT$ state is $5/8$, while ending up in the $THT$ state is $3/8$.
 
+Q3. **On average, how many times must a 6-sided die be rolled until all sides appear at least once? What about for an n-sided die?**
+
+Let $n_i$ be the number of times face $i$ has shown up since we started rolling the dice. We now define an indicator variable $\mathcal{I}_i = \mathcal{I} (n_i > 0)$ and a random variable $X$ that is the sum of these indicator variables $\mathcal{I}_1$ to $\mathcal{I}_6$. The possible values of $X$ serves as the states of the system, i.e. $S = \[1, 2, 3, 4, 5, 6\]$.
+
+The state $X=6$ can then be identified as the absorbing state, which happens when we see all the faces of the dice. The state diagram is given as:
+
+<p align="center">
+  <img src="/static/img/dice_face.png" width="400"/>
+</p>
+
+The transition matrix corresponding to this can be written as:
+
+<p>
+$$T = \begin{bmatrix}
+                      1/6 & 5/6 & 0 & 0 & 0 &0 \\
+                      0 & 2/6 & 4/6 & 0 & 0 &0\\
+                      0 & 0 & 3/6 & 3/6 & 0 &0\\
+                      0 & 0 & 0 & 4/6 & 2/6 &0\\
+                      0 & 0 & 0 & 0 & 5/6 &1/6\\
+                      0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix},$$
+</p>
+
+where the labels corresponds to the index as given in $S$. The fundamental matrix is given by:
+
+<p>
+$$N = [I - Q]^{-1} = \begin{bmatrix}
+                      1.2 & 1.5 & 2 & 3 & 6 \\
+                      0 & 1.5 & 2 & 3 & 6\\
+                      0 & 0 & 2 & 3 & 6\\
+                      0 & 0 & 0 & 3 & 6\\
+                      0 & 0 & 0 & 0 & 6
+\end{bmatrix}$$
+</p>
+
+Since we begin in state $1$ (after one dice roll) which is at index $0$, the average number of dice rolls before seeing all sides appear is:
+
+$$t_{\phi} = 1 + \sum_{j} N_{0j} = 1 + (1.2 + 1.5 + 2 + 3 + 6) = 14.7$$
+
+The $1$ in the above equation is needed since initially we start with no dice roll (state $\phi$). The above summation can be written in an interesting way:
+
+$$t_{\phi} = 6\left(\frac{1}{6} + \frac{1}{5} + \frac{1}{4} + \frac{1}{3} + \frac{1}{2} + 1 \right)$$
+
+The quantity in the bracket is nothing but the $6^{th}$ [Harmonic number](https://en.wikipedia.org/wiki/Harmonic_number) $H_6$. Hence generalizing to arbitrary sided dice, the expected number of rolls required before seeing all the faces of the $n-sided$ dice is:
+
+$$t_n = n\ H_n$$
+
+
+
+
+
 <!-- <hr> -->
