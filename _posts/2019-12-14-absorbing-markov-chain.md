@@ -1,3 +1,11 @@
+---
+layout: post
+title:  "Absorbing Markov Chains"
+date:   2019-12-14 00:00:00 +0700
+categories: [statistics]
+---
+
+
 A Markov chain containing absorbing states is known as an absorbing Markov chain. So what is an absorbing state. In simple words, if you end up on an absorbing state you can't go anywhere else; you are stuck there for all eternity. In other words, the probability of transition from an absorbing state $i$ to any other non-absorbing state, also called transient states, is 0.
 
 At this point, we can make an observation:

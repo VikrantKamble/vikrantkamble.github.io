@@ -1,3 +1,10 @@
+---
+layout: post
+title:  "Poisson Process"
+date:   2019-09-29 00:00:00 +0700
+categories: [statistics]
+---
+
 Let's imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let's now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.
 
 Now what in the world is a Poisson process. If we think $\lambda$ as the number of raindrops falling on the patch per minute, and let's say we wait for 5 minutes; how many raindrops will we see? Well, on average we would see $5\lambda$ drops. However, we might see more or we might see less. A Poisson process is one in which this count of drops is [Poisson distributed](https://en.wikipedia.org/wiki/Poisson_distribution).

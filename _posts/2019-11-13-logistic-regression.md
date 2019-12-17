@@ -1,3 +1,11 @@
+---
+layout: post
+title:  "Logistic Regression"
+date:   2019-11-13 00:00:00 +0700
+categories: [statistics]
+---
+
+
 One of the most common test case in supervised machine learning is that of classification:
 
 > Given a data point, classify it into one of the many labels available
