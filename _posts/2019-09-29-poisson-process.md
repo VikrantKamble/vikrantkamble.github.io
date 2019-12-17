@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Poisson Process"
-date:   2019-09-29 00:00:00 +0700
+date:   2019-09-29 00:23:00 +0700
 categories: [statistics]
 ---
 

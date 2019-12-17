@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Absorbing Markov Chains"
-date:   2019-12-14 00:00:00 +0700
+date:   2019-12-14 00:23:00 +0700
 categories: [statistics]
 ---
 
