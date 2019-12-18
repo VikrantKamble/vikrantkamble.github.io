@@ -52,7 +52,7 @@ $$E[X] = \sum_{k=0}^\infty \sum_{x=0}^\infty \mathcal{I}(x > k)\ P(X = x) = \sum
 
 <hr>
 
-**3. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?**
+**4. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?**
 
 If we independently draw $d$ times from Uniform distribution $\mathcal{U}[0, 1]$, the state-space of all possibilities correspond to the region $S$ in the following diagram (shown for $d=2$ and $d=3$):
 
