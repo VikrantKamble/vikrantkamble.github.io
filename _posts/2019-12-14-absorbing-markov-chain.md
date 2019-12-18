@@ -214,8 +214,4 @@ The quantity in the bracket is nothing but the $6^{th}$ [Harmonic number](https:
 
 $$t_n = n\ H_n$$
 
-
-
-
-
 <!-- <hr> -->

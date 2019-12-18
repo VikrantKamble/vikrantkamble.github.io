@@ -50,3 +50,45 @@ Switching the order of summation, we get the required result:
 
 $$E[X] = \sum_{k=0}^\infty \sum_{x=0}^\infty \mathcal{I}(x > k)\ P(X = x) = \sum_{k=0}^\infty P(X > k).$$
 
+<hr>
+
+**3. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?**
+
+If we independently draw $d$ times from Uniform distribution $\mathcal{U}[0, 1]$, the state-space of all possibilities correspond to the region $S$ in the following diagram (shown for $d=2$ and $d=3$):
+
+<p align="center">
+  <img src="/static/img/simplex.png" width="500"/>
+</p>
+
+Each point in the region has equal probability. The state-space where the sum of the two draw is less than $1$ is then given by the region $R$. The probability that the sum of the samples drawn is less than $1$ is then the *volume* of $R$ divided by the *volume* of $S$.
+
+<blockquote>
+The region $S$ is nothing but a hypercube in $d$-dimensions where $d$ is the number of draws. For $d=2$, it is a square, for $d=3$ it is a cube and so on. Since each side of this hypercube has length $1$, the volume of $S$ is trivially $1$.
+</blockquote>
+
+The region $R$ in $d$-dimensions is nothing but a [standard $d-simplex$](https://en.wikipedia.org/wiki/Simplex).
+
+<blockquote>
+The volume of such a simplex can be shown to be $\frac{1}{d!}$.
+</blockquote>
+
+ We can easily verify this for a couple of dimensions.
+
+<p>
+\begin{align}
+Vol(2-simplex) &= \int_{x=0}^1 \int_{y=0}^{1-x} dx\ dy = 1/2! \\
+Vol(3-simplex) &= \int_{x=0}^1 \int_{y=0}^{1-x} \int_{z=0}^{1-x-y} dx\ dy\ dz = 1/3!
+\end{align}
+</p>
+
+Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ rolls of the dice such that the cumulative sum equals $1$.
+
+$$E[X] =  \sum_{x=0}^\infty x\ P(X = x)$$
+
+Using the tail sum for expectation, we can write:
+
+$$E[X] =  \sum_{x=0}^\infty P(X > x)$$
+
+$P(X > x)$ means the probability that one requires more than $x$ draws to reach a sum greater than $1$. This can also be thought as the probability that in $x$ rolls, one obtained a sum less than $1$. Interestingly, this value is nothing but the volume of region $R$. Thus we have
+
+$$E[X] =  \sum_{x=0}^\infty P(X > x) = \sum_{x=0}^\infty \frac{1}{x!} = e \quad \quad (surprise!!!)$$
