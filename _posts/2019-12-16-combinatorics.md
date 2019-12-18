@@ -92,3 +92,5 @@ $$E[X] =  \sum_{x=0}^\infty P(X > x)$$
 $P(X > x)$ means the probability that one requires more than $x$ draws to reach a sum greater than $1$. This can also be thought as the probability that in $x$ rolls, one obtained a sum less than $1$. Interestingly, this value is nothing but the volume of region $R$. Thus we have
 
 $$E[X] =  \sum_{x=0}^\infty P(X > x) = \sum_{x=0}^\infty \frac{1}{x!} = e \quad \quad (surprise!!!)$$
+
+Thus, the average number of draws required till the cumulative sum of the draws is greater than or equal to $1$ is $e$.
