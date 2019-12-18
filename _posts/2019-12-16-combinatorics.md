@@ -81,7 +81,7 @@ Vol(3-simplex) &= \int_{x=0}^1 \int_{y=0}^{1-x} \int_{z=0}^{1-x-y} dx\ dy\ dz = 
 \end{align}
 </p>
 
-Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ rolls of the dice such that the cumulative sum equals $1$.
+Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ draws from the distribution such that the cumulative sum of the draws equals $1$.
 
 $$E[X] =  \sum_{x=0}^\infty x\ P(X = x)$$
 
