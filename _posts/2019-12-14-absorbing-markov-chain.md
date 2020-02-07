@@ -108,7 +108,7 @@ where $E = \\{\phi, 1, 2, 3, 4, 5\\}$. $\phi$ represents the null state $\to$ th
 
 The transition matrix can be written as:
 
-$$T = \begin{bmatrix} 0 & 5/6 & 1/6 \\ 1/6 & 5/6 & 0 \\ 0 & 0 & 1\end{bmatrix},$$
+<p>$$T = \begin{bmatrix} 0 & 5/6 & 1/6 \\ 1/6 & 5/6 & 0 \\ 0 & 0 & 1\end{bmatrix},$$</p>
 
 where the labels corresponds to the index as given in $S$. The fundamental matrix $N$ is given by:
 
