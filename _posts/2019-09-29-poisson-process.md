@@ -3,6 +3,7 @@ layout: post
 title:  "Poisson Process"
 date:   2019-09-29 00:23:00 +0700
 categories: [statistics]
+mathjax: true
 ---
 
 Let's imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let's now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.
