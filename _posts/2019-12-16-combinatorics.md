@@ -3,6 +3,7 @@ layout: post
 title:  "Combinatorics, Tail sum for expectation and Simplices"
 date:   2019-12-16 00:23:00 +0700
 categories: [statistics]
+mathjax: true
 ---
 
 **1. How many different ways are possible to have $k-tuple$ with *non-negative integer* values such that they sum to a given value $n$?**
