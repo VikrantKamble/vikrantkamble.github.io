@@ -1,63 +1,110 @@
-title: Stochastic Entity
-description: Ramblings about statistics, python and collapsed stochastic brainstates!
-author: Vikrant Kamble
-github: https://github.com/vikrantkamble
-about: I'm an astronomer aspiring to be a data scientist/programmer
-disqus_shortname: vkamble
-google_analytics: UA-XXXXXXXX-Y
-avatar_url: /static/img/20160716_183931.jpg
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely edit after that. If you find
+# yourself editing this file very often, consider using Jekyll's data files
+# feature for the data you need to update frequently.
+#
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'bundle exec jekyll serve'. If you change this file, please restart the server process.
 
-enableTags: true
-tagarray: []
+# Site settings
+# These are used to personalize your new site. If you look in the HTML files,
+# you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
+# You can create any custom variable you would like, and they will be accessible
+# in the templates via {{ site.myvariable }}.
+theme: jekyll-theme-so-simple
+# remote_theme: mmistakes/so-simple-theme
+skin: "/assets/css/skins/dark.css"
+locale: en-US
+title: "Prometheus"
+description: "Personal blog for ideas."
+baseurl: # the subpath of your site, e.g. "/blog"
+url: "https://vikrantkamble.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+logo: # path of site logo, e.g. "/images/logo.png"
+date_format: "%B %-d, %Y"
+read_time: # reading time estimates, e.g. true
+words_per_minute: # 200
+mathjax:
+  enable: true             # MathJax equations, e.g. true, false (default)
+  combo: "tex-svg"         # "tex-svg" (default), "tex-mml-chtml", etc.
+  tags: "ams"              # "none", "ams" (default), "all"
+google_fonts:
+  - name: "Source Sans Pro"
+    weights: "400,400i,700,700i"
+  - name: "Lora"
+    weights: "400,400i,700,700i"
+google_analytics: # Google Analytics id, e.g. "UA-NNNNNNNN-N"
+disqus:
+  shortname: # Disqus shortname, e.g. "my_disqus_shortname"
+twitter:
+  username: # site's Twitter username, e.g. "mmistakes"
 
-collections:
-  project:
-    output: true
-    permalink: /project/:path/
+# Liquid
+liquid:
+  error_mode: strict
 
-social:
-    - icon: fa-facebook
-      link: "https://www.facebook.com/vikrant10622"
-    - icon: fa-twitter
-      link: "#"
-    - icon: fa-linkedin
-      link: "https://www.linkedin.com/in/vikrant-a-kamble/"
-    - icon: fa-stack-exchange
-      link: "#"
-    - icon: fa-github
-      link: "https://github.com/VikrantKamble"
+# Build settings
+permalink: /:categories/:title/
+markdown: kramdown
+feed:
+  path: atom.xml
 
-share:
-  twitter_username: github.io
-  fb_appid: 1749788565247320
-
-urls:
-    - text: About Me
-      url: /about/
-    - text: My Projects
-      url: /projects/
-    - text: XML Feed
-      url: /feed.xml
-
-url: "https://vikrantkamble.github.io"
-baseurl: ""
+# Pagination - https://jekyllrb.com/docs/pagination/
+# paginate: 10
+# paginate_path: /page:num/
 paginate: 20
 per_page: 20
 paginate_path: "/page/:num/"
-markdown: kramdown
-gems:
+
+# Search
+search_full_content: false # can have performance implications for large sites
+
+# Taxonomy pages
+# category_archive_path: "/categories/#"
+# tag_archive_path: "/tags/#"
+
+# Exclude from processing.
+# The following items will not be processed, by default. Create a custom list
+# to override the default setting.
+# exclude:
+#   - Gemfile
+#   - Gemfile.lock
+#   - node_modules
+#   - vendor/bundle/
+#   - vendor/cache/
+#   - vendor/gems/
+#   - vendor/ruby/
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
   - jekyll-paginate
-  - jekyll-gist
 
-compress_html:
-  clippings: all
-  comments: ["<!-- ", " -->"]
-  endings: all
-  ignore:
-    envs: ['development']
+# Front Matter Defaults
+defaults:
+  # Posts defaults
+  - scope:
+      path: "_posts"
+      type: posts
+    values:
+      layout: post
+      share: true
 
-# Disqus Comments
-disqus:
-    # Leave shortname blank to disable comments site-wide.
-    # Disable comments for any post by adding `comments: false` to that post's YAML Front Matter.
-    shortname: vkamble
+# Site Author
+author:
+  name: Vikrant Kamble
+  picture:
+  email: vikrant.kamble1990@gmail.com
+  twitter:
+  links:
+    - title:
+      url:
+      icon:
+
+# Footer Links
+footer_links:
+  - title: GitHub
+    url: https://github.com/VikrantKamble
+    icon: fab fa-github-square

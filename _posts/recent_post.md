@@ -1,8 +1,7 @@
-Heading
-======
+---
+layout: post
+title:  "Logistic Regression"
+date:   2019-11-13 00:23:00 +0700
+categories: [statistics]
+---
 
-Here is a recent post. This is *italic* and this is **bold**.
-
-Bullet points:
-- First point
-- Second point
