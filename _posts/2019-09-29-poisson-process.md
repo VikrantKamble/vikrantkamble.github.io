@@ -28,6 +28,7 @@ Now let's say we were curious about counting the inter-arrival time between rain
 
 $$P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0$$
 
+
 <p align="center">
   <img src="/static/img/exponential.png" width="400"/>
 </p>
