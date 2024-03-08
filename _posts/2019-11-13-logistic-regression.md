@@ -3,7 +3,7 @@ layout: post
 title:  "Logistic Regression"
 date:   2019-11-13 00:23:00 +0700
 categories: [statistics]
-mathjax: true
+usemathjax: true
 ---
 
 
@@ -23,6 +23,7 @@ However, in this post we are going to assume that we already have the features i
 
 
 $$y = sign(x'^T w' + w_0) = x^T w, \qquad y \in \{-1, 1\}.$$
+
 
 Conceptually, one can also think of the boundary as a set of points in the feature space whose probability of belonging to class $y=1$ (or $y=-1$) is half. As we move away from the boundary, on one side the probability of belonging to $y=1$ diminishes, while on the other end it approaches 1.
 

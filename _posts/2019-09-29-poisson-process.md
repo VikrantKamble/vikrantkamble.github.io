@@ -3,7 +3,7 @@ layout: post
 title:  "Poisson Process"
 date:   2019-09-29 00:23:00 +0700
 categories: [statistics]
-mathjax: true
+usemathjax: true
 ---
 
 Let's imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let's now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.
@@ -25,9 +25,8 @@ An interesting property about Poisson distribution is that its mean and variance
 
 Now let's say we were curious about counting the inter-arrival time between raindrops. Well if there are on average $\lambda$ drops falling per minute, the inter-arrival time on average should be $1/\lambda$. But what is the actual shape of the probability distribution of the inter-arrival times? In this case, the pdf is over a continuous domain and happens to be the [exponential distribution](https://en.wikipedia.org/wiki/Exponential_distribution). It has one free parameter and you guessed it, its the same $\lambda$ parameter that we have been using till now.
 
-$$
-P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0
-$$
+
+$$P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0$$
 
 <p align="center">
   <img src="/static/img/exponential.png" width="400"/>
