@@ -1,5 +1,5 @@
 ---
-layout: posts_by_category
+layout: categories
 categories: algorithms
 title: Algorithms
 permalink: /category/algorithms

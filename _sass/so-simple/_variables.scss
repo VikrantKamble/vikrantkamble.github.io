@@ -9,11 +9,11 @@ $large: 1024px !default;
 $xlarge: 1280px !default;
 
 /* Fluid type */
-$base-font-size: 15px !default;
+$base-font-size: 16px !default;
 $min-vw: $small !default;
 $max-vw: $xlarge !default;
-$min-font-size: 15px !default;
-$max-font-size: 16px !default;
+$min-font-size: 16px !default;
+$max-font-size: 18px !default;
 
 /* Calculate Modular Scale */
 $modular-scale-1: 1.067 !default; /* small */
@@ -40,7 +40,7 @@ $h6-max: ($base-font-size / $modular-scale-2) !default;
 /* Font Families */
 $serif-font-family: "Lora", serif !default;
 $sans-serif-font-family: "EB Garamond", "Optima", "Source Sans Pro", sans-serif !default;
-$monospace-font-family: Menlo, Consolas, Monaco, "Courier New", Courier, monospace !default;
+$monospace-font-family: monospace !default;
 
 $base-font-family: $sans-serif-font-family !default;
 $headline-font-family: $sans-serif-font-family !default;
