@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<!--
+    So Simple Jekyll Theme 3.2.0
+    Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+    Free for personal and commercial use under the MIT license
+    https://github.com/mmistakes/so-simple-theme/blob/master/LICENSE
+-->
+<html lang="en-US" class="no-js">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Poisson Process | Stochastic Entity</title>
+<meta name="generator" content="Jekyll v4.3.3" />
+<meta property="og:title" content="Poisson Process" />
+<meta name="author" content="Vikrant Kamble" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process." />
+<meta property="og:description" content="Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process." />
+<link rel="canonical" href="http://localhost:4000/statistics/poisson-process/" />
+<meta property="og:url" content="http://localhost:4000/statistics/poisson-process/" />
+<meta property="og:site_name" content="Stochastic Entity" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-09-28T10:23:00-07:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Poisson Process" />
+<meta name="twitter:site" content="@" />
+<meta name="twitter:creator" content="@Vikrant Kamble" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Vikrant Kamble"},"dateModified":"2019-09-28T10:23:00-07:00","datePublished":"2019-09-28T10:23:00-07:00","description":"Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\\lambda$. We can describe rain as a Poisson process.","headline":"Poisson Process","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/statistics/poisson-process/"},"url":"http://localhost:4000/statistics/poisson-process/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://use.typekit.net/eio0pzn.css">
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/skins/default.css">
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,700,700i|Lora:400,400i,700,700i">
+  <link rel="alternate" type="application/atom+xml" title="Stochastic Entity" href="/atom.xml">
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+</head>
+
+
+  <body class="layout--post  poisson-process">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="/posts">Home</a></li><li><a href="/categories/">Categories</a></li><li><a href="/tags/">Tags</a></li><li><a href="/search/">Search</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+    
+    
+      
+        <div class="site-title animated fadeIn"><a href="/">Stochastic Entity</a></div>
+      
+      <p class="site-description animated fadeIn" itemprop="description">Personal blog for ideas and docs.</p>
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">Poisson Process
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><img src="/images/headshot_compressed.jpg" class="author-avatar u-photo" alt="Vikrant Kamble"><div class="author-info"><div class="author-name">
+        <em>by</em> <span class="p-name">Vikrant Kamble</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://instagram.com/vikrant10622"><i class="fab fa-instagram fa-lg" title="Instagram"></i></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-lg" title="GitHub"></i></a>
+          </li></ul>
+    <time class="page-date dt-published" datetime="2019-09-28T10:23:00-07:00"><a class="u-url" href="">September 28, 2019</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy">statistics</li>
+  </ul>
+
+
+        
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p>Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.</p>
+
+<p>Now what in the world is a Poisson process. If we think $\lambda$ as the number of raindrops falling on the patch per minute, and let’s say we wait for 5 minutes; how many raindrops will we see? Well, on average we would see $5\lambda$ drops. However, we might see more or we might see less. A Poisson process is one in which this count of drops is <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distributed</a>.</p>
+
+<p>This discrete probability distribution is given by:</p>
+
+\[P(k\ \mathrm{events\ in\ interval}\ t) = \frac{ (\lambda t)^k e^{-\lambda t}}{k!}\]
+
+<!-- ![composite](/static/img/poisson.png =100x20){:class="img-responsive"} -->
+<p align="center">
+  <img src="/static/img/poisson.png" width="350" />
+</p>
+
+<p>An interesting property about Poisson distribution is that its mean and variance are equal and they are simply $\lambda t$.</p>
+
+<p>Now let’s say we were curious about counting the inter-arrival time between raindrops. Well if there are on average $\lambda$ drops falling per minute, the inter-arrival time on average should be $1/\lambda$. But what is the actual shape of the probability distribution of the inter-arrival times? In this case, the pdf is over a continuous domain and happens to be the <a href="https://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>. It has one free parameter and you guessed it, its the same $\lambda$ parameter that we have been using till now.</p>
+
+\[P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0\]
+
+<p align="center">
+  <img src="/static/img/exponential.png" width="400" />
+</p>
+
+<p>The distribution has mean $1/\lambda$ as we expected, and a variance of $1/\lambda^2$.</p>
+
+<p>Here we can imaging a scenario. You decide to go inside to get your cup of tea. You now think how long will it take for you to see a raindrop on average once you go back outside. You calculate, on average the inter-arrival time is $1/\lambda = 6$ seconds. Given that you decide to go out randomly, it will take 3 seconds before you see the next raindrop. But is it?</p>
+
+<p>Plotted are the arrival times(in seconds) of the first 20 drops that I simulated using $\lambda=10\ \mathrm{drops/min}$.</p>
+
+<p align="center">
+  <img src="/static/img/drops.png" width="400" />
+</p>
+
+<p>When you go out carrying your cup of tea which of the intervals(region between two drops) above are you more likely to hit. Obviously the regions with larger width. In other words, regions with larger width are oversampled. However these larger width regions also occurs less frequently (Refer fig. 2). So the probability distribution of encountering region $R$ of interval size $T$ is:</p>
+
+\[P(\mathrm{Region}\ R\ \mathrm{of\ size}\ T) = \lambda^2 T\ e^{-\lambda T}\]
+
+<p>On expectation, the region that we are most likely to encounter has width given by:</p>
+
+\[E[W] = \int_0^\infty T\ pdf(T)\ dT = \int_0^\infty T\ \lambda^2 T\ e^{-\lambda T} = \frac{2}{\lambda}\]
+
+<p>Since we are walking in randomly, the interval that we would observe is then half of the above value. But guess what this value is $1 / \lambda$, the expected arrival times between two raindrops, which in our case is 6 seconds and not 3 seconds are we thought before.</p>
+
+<p>A take on this interesting phenomenon in case of bus arrival times, known as the <em>waiting time paradox</em>; which states:</p>
+
+<blockquote>
+  When waiting for a bus that comes on average every 10 minutes, your average waiting time will be 10 minutes.
+</blockquote>
+
+<p>A nice discussion on this paradox can be found in this <a href="https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/">post</a> by Jake Vanderplas. The waiting time paradox is a specific example of the <a href="https://towardsdatascience.com/the-inspection-paradox-is-everywhere-2ef1c2e9d709"><em>inspection paradox</em></a>.</p>
+
+<p>Let’s continue on our journey of exploring distributions via raindrops. You now ask, what is the time interval between $n$ consecutive raindrops? There are $n-1$ intervals between $n$ consecutive raindrops, with each interval having a size $t$ given by the exponential distribution. So what we want is the random variable which is the sum of $k = n-1$ exponentially distributed random variables. The pdf of this random variable is the <a href="https://en.wikipedia.org/wiki/Gamma_distribution">Gamma distribution</a>:</p>
+
+\[P(x | k, \lambda) = \frac{\lambda^k\ x^{k - 1} e^{-\lambda x}}{\Gamma(k)}\]
+
+<p align="center">
+  <img src="/static/img/gamma.png" width="400" />
+</p>
+
+<p>Our exploration uncovers a key finding that the various distributions are interconnected. For more such relations refer to this <a href="https://en.wikipedia.org/wiki/Relationships_among_probability_distributions">link</a>. What we discussed was Poisson process in the time domain, raindrops or photons hitting a telescope; one can also have Poisson processes in the spatial domain. Its easier to visualize this in 2D, and we can take an example of trees growing in a forest. Analogous to the time domain discussion above, we have a rate parameter $\lambda$ which is <em>number of trees per unit area</em>. If we take a square of area A, move it across the forest, each time counting the number of trees that fall in the square, the count is going to be a random variable which, the same as before, is going to be Poisson distributed:</p>
+
+\[P(k\ \mathrm{trees\ in\ area}\ A) = \frac{ (\lambda A)^k e^{-\lambda A}}{k!}\]
+
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fpoisson-process%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--facebook btn--small"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Poisson+Process%20http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fpoisson-process%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--twitter btn--small"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fpoisson-process%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--linkedin btn--small"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=Poisson+Process&url=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fpoisson-process%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--reddit btn--small"><i class="fab fa-fw fa-reddit" aria-hidden="true"></i> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="/statistics/pdf-of-function/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <i class="fas fa-arrow-left"></i> PDF of a dependent variable
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="/statistics/logistic-regression/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        Logistic Regression
+ <i class="fas fa-arrow-right"></i>
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-2x" title="GitHub"></i></a></div><div class="copyright">
+    
+      <p>&copy; 2024 Stochastic Entity. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/mmistakes/so-simple-theme" rel="nofollow">So Simple</a>.</p>
+    
+  </div>
+</footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"></script>
+
+<!-- for mathjax support --><script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      messageStyle: "none",
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+    });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+  </body>
+
+</html>

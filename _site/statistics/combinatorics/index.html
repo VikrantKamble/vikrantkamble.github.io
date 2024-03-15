@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<!--
+    So Simple Jekyll Theme 3.2.0
+    Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+    Free for personal and commercial use under the MIT license
+    https://github.com/mmistakes/so-simple-theme/blob/master/LICENSE
+-->
+<html lang="en-US" class="no-js">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Combinatorics, Tail sum for expectation and Simplices | Stochastic Entity</title>
+<meta name="generator" content="Jekyll v4.3.3" />
+<meta property="og:title" content="Combinatorics, Tail sum for expectation and Simplices" />
+<meta name="author" content="Vikrant Kamble" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="1. How many different ways are possible to have $k-tuple$ with non-negative integer values such that they sum to a given value $n$?" />
+<meta property="og:description" content="1. How many different ways are possible to have $k-tuple$ with non-negative integer values such that they sum to a given value $n$?" />
+<link rel="canonical" href="http://localhost:4000/statistics/combinatorics/" />
+<meta property="og:url" content="http://localhost:4000/statistics/combinatorics/" />
+<meta property="og:site_name" content="Stochastic Entity" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-12-15T09:23:00-08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Combinatorics, Tail sum for expectation and Simplices" />
+<meta name="twitter:site" content="@" />
+<meta name="twitter:creator" content="@Vikrant Kamble" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Vikrant Kamble"},"dateModified":"2019-12-15T09:23:00-08:00","datePublished":"2019-12-15T09:23:00-08:00","description":"1. How many different ways are possible to have $k-tuple$ with non-negative integer values such that they sum to a given value $n$?","headline":"Combinatorics, Tail sum for expectation and Simplices","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/statistics/combinatorics/"},"url":"http://localhost:4000/statistics/combinatorics/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://use.typekit.net/eio0pzn.css">
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/skins/default.css">
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,700,700i|Lora:400,400i,700,700i">
+  <link rel="alternate" type="application/atom+xml" title="Stochastic Entity" href="/atom.xml">
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+</head>
+
+
+  <body class="layout--post  combinatorics-tail-sum-for-expectation-and-simplices">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="/posts">Home</a></li><li><a href="/categories/">Categories</a></li><li><a href="/tags/">Tags</a></li><li><a href="/search/">Search</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+    
+    
+      
+        <div class="site-title animated fadeIn"><a href="/">Stochastic Entity</a></div>
+      
+      <p class="site-description animated fadeIn" itemprop="description">Personal blog for ideas and docs.</p>
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">Combinatorics, Tail sum for expectation and Simplices
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><img src="/images/headshot_compressed.jpg" class="author-avatar u-photo" alt="Vikrant Kamble"><div class="author-info"><div class="author-name">
+        <em>by</em> <span class="p-name">Vikrant Kamble</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://instagram.com/vikrant10622"><i class="fab fa-instagram fa-lg" title="Instagram"></i></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-lg" title="GitHub"></i></a>
+          </li></ul>
+    <time class="page-date dt-published" datetime="2019-12-15T09:23:00-08:00"><a class="u-url" href="">December 15, 2019</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy">statistics</li>
+  </ul>
+
+
+        
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p><strong>1. How many different ways are possible to have $k-tuple$ with <em>non-negative integer</em> values such that they sum to a given value $n$?</strong></p>
+
+<p>$\to $To arrive at the solution, one can use the $stars-and-bars$ method. Let’s draw a sequence of n stars. There are $n-1$ spaces between the stars. What we need to do now to create $k$ numbers, is to place $k-1$ bars in those spaces. One such possibility for $n=6$ and $k=3$ is as follows:</p>
+
+\[\star\ | \star\  \star\ \star\ | \star\ \star \quad \quad \to 3-tuple\ (1, 3, 2)\]
+
+<p>Thus we need to choose $k-1$ locations out of the $n-1$ spaces available. The number of such combinations possible is thus $\binom{n-1}{k-1}$.</p>
+
+<p><strong>2. What if we allowed for the values to be 0? How many combinations are possible then?</strong></p>
+
+<p>$\to$ In the above case when all is done we placed $n+k-1$ objects(stars + bars). We were restricted by the fact that the values had to be <em>non-negative</em>. So we had to place the bars in the gaps between stars. However, now we do not have any such restriction. We can first choose $k-1$ slots out of $n+k-1$ slots available to place the bars. Once that is done, we just place the $n$ stars in the $n$ slots remaining. One such possibility for $n=6$ and $k=3$ is as follows:</p>
+
+\[\underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star} \quad \quad \to 3-tuple\ (0, 3, 3)\]
+
+<p>Given this discussion, the number of combinations of $k-tuple$ possible is $\binom{n+k-1}{k-1} = \binom{n+k-1}{n}$. This number is also known as the <a href="https://en.wikipedia.org/wiki/Multiset">multiset coefficient</a>.</p>
+
+<p><strong>3. We roll a fair dice $n$ times. What is the probability that all faces have appeared?</strong></p>
+
+<p>Lets $\mathcal{I_i}$ be the number of times a face $i$ has appeared after the dice has been rolled $n$ times. What we need is a $6-tuple\ (\mathcal{I_1}, \mathcal{I_2}, \mathcal{I_3}, \mathcal{I_4}, \mathcal{I_5}, \mathcal{I_6})$ such that the elements sum to $n$, and <strong>none</strong> of the values $\mathcal{I_i}$ are 0. The probability that all faces have appeared is then the result given in Que. 1 divided by the results given in Que 2.</p>
+
+<p>
+\begin{align}
+prob = \binom{n-1}{k-1} / \binom{n+k-1}{k-1} &amp;= \frac{n!\ (n-1)!}{(n-k)!\ (n+k-1)!}\\
+  &amp;= \frac{n!\ (n-1)!}{(n-6)!\ (n+5)!} \qquad \qquad k = 6
+\end{align}
+</p>
+
+<hr />
+
+<p>The <em>tail sum for expectation</em> formula for a non-negative integer random number is given as:</p>
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty P(X &gt; x)\]
+
+<p>Proof: To show this, one can use an interesting identity for any non-negative integer given by:</p>
+
+\[x = \sum_{k=0}^\infty \mathcal{I}(x &gt; k),\]
+
+<p>where $\mathcal{I}(condition)$ is an indicator function that evaluates to $1$ if condition is true, else 0. The well known formula for expectation can then becomes:</p>
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty \sum_{k=0}^\infty  \mathcal{I}(x &gt; k)\ P(X = x).\]
+
+<p>Switching the order of summation, we get the required result:</p>
+
+\[E[X] = \sum_{k=0}^\infty \sum_{x=0}^\infty \mathcal{I}(x &gt; k)\ P(X = x) = \sum_{k=0}^\infty P(X &gt; k).\]
+
+<hr />
+
+<p><strong>4. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?</strong></p>
+
+<p>If we independently draw $d$ times from Uniform distribution $\mathcal{U}[0, 1]$, the state-space of all possibilities correspond to the region $S$ in the following diagram (shown for $d=2$ and $d=3$):</p>
+
+<p align="center">
+  <img src="/static/img/simplex.png" width="500" />
+</p>
+
+<p>Each point in the region has equal probability. The state-space where the sum of the two draw is less than $1$ is then given by the region $R$. The probability that the sum of the samples drawn is less than $1$ is then the <em>volume</em> of $R$ divided by the <em>volume</em> of $S$.</p>
+
+<blockquote>
+The region $S$ is nothing but a hypercube in $d$-dimensions where $d$ is the number of draws. For $d=2$, it is a square, for $d=3$ it is a cube and so on. Since each side of this hypercube has length $1$, the volume of $S$ is trivially $1$.
+</blockquote>
+
+<p>The region $R$ in $d$-dimensions is nothing but a <a href="https://en.wikipedia.org/wiki/Simplex">standard $d-simplex$</a>.</p>
+
+<blockquote>
+The volume of such a simplex can be shown to be $\frac{1}{d!}$.
+</blockquote>
+
+<p>We can easily verify this for a couple of dimensions.</p>
+
+<p>
+\begin{align}
+Vol(2-simplex) &amp;= \int_{x=0}^1 \int_{y=0}^{1-x} dx\ dy = 1/2! \\
+Vol(3-simplex) &amp;= \int_{x=0}^1 \int_{y=0}^{1-x} \int_{z=0}^{1-x-y} dx\ dy\ dz = 1/3!
+\end{align}
+</p>
+
+<p>Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ draws from the distribution such that the cumulative sum of the draws is greater than or equal to $1$.</p>
+
+\[E[X] =  \sum_{x=0}^\infty x\ P(X = x)\]
+
+<p>Using the tail sum for expectation, we can write:</p>
+
+\[E[X] =  \sum_{x=0}^\infty P(X &gt; x)\]
+
+<p>$P(X &gt; x)$ means the probability that one requires more than $x$ draws to reach a sum greater than $1$. This can also be thought as the probability that in $x$ rolls, one obtained a sum less than $1$. Interestingly, this value is nothing but the volume of region $R$. Thus we have</p>
+
+\[E[X] =  \sum_{x=0}^\infty P(X &gt; x) = \sum_{x=0}^\infty \frac{1}{x!} = e \quad \quad (surprise!!!)\]
+
+<p>Thus, the average number of draws required till the cumulative sum of the draws is greater than or equal to $1$ is $e$.</p>
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fcombinatorics%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--facebook btn--small"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Combinatorics%2C+Tail+sum+for+expectation+and+Simplices%20http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fcombinatorics%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--twitter btn--small"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fcombinatorics%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--linkedin btn--small"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=Combinatorics%2C+Tail+sum+for+expectation+and+Simplices&url=http%3A%2F%2Flocalhost%3A4000%2Fstatistics%2Fcombinatorics%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--reddit btn--small"><i class="fab fa-fw fa-reddit" aria-hidden="true"></i> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="/statistics/absorbing-markov-chain/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <i class="fas fa-arrow-left"></i> Absorbing Markov Chains
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="/algorithms/sliding-windows/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        Arrays
+ <i class="fas fa-arrow-right"></i>
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-2x" title="GitHub"></i></a></div><div class="copyright">
+    
+      <p>&copy; 2024 Stochastic Entity. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/mmistakes/so-simple-theme" rel="nofollow">So Simple</a>.</p>
+    
+  </div>
+</footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"></script>
+
+<!-- for mathjax support --><script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      messageStyle: "none",
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+    });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+  </body>
+
+</html>

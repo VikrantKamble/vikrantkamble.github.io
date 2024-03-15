@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<!--
+    So Simple Jekyll Theme 3.2.0
+    Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+    Free for personal and commercial use under the MIT license
+    https://github.com/mmistakes/so-simple-theme/blob/master/LICENSE
+-->
+<html lang="en-US" class="no-js">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>IMDB movie reviews | Stochastic Entity</title>
+<meta name="generator" content="Jekyll v4.3.3" />
+<meta property="og:title" content="IMDB movie reviews" />
+<meta name="author" content="Vikrant Kamble" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="The goal of this notebook is to understand some details about Huggingface’s dataset and transformer libraries and also as a reference point for fine-tuning a LLM model for a classification task." />
+<meta property="og:description" content="The goal of this notebook is to understand some details about Huggingface’s dataset and transformer libraries and also as a reference point for fine-tuning a LLM model for a classification task." />
+<link rel="canonical" href="http://localhost:4000/ml/bert_movie_reviews/" />
+<meta property="og:url" content="http://localhost:4000/ml/bert_movie_reviews/" />
+<meta property="og:site_name" content="Stochastic Entity" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-03-07T16:00:00-08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="IMDB movie reviews" />
+<meta name="twitter:site" content="@" />
+<meta name="twitter:creator" content="@Vikrant Kamble" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Vikrant Kamble"},"dateModified":"2024-03-07T16:00:00-08:00","datePublished":"2024-03-07T16:00:00-08:00","description":"The goal of this notebook is to understand some details about Huggingface’s dataset and transformer libraries and also as a reference point for fine-tuning a LLM model for a classification task.","headline":"IMDB movie reviews","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/ml/bert_movie_reviews/"},"url":"http://localhost:4000/ml/bert_movie_reviews/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://use.typekit.net/eio0pzn.css">
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/skins/default.css">
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,700,700i|Lora:400,400i,700,700i">
+  <link rel="alternate" type="application/atom+xml" title="Stochastic Entity" href="/atom.xml">
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+</head>
+
+
+  <body class="layout--post  imdb-movie-reviews">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="/posts">Home</a></li><li><a href="/categories/">Categories</a></li><li><a href="/tags/">Tags</a></li><li><a href="/search/">Search</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+    
+    
+      
+        <div class="site-title animated fadeIn"><a href="/">Stochastic Entity</a></div>
+      
+      <p class="site-description animated fadeIn" itemprop="description">Personal blog for ideas and docs.</p>
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">IMDB movie reviews
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><img src="/images/headshot_compressed.jpg" class="author-avatar u-photo" alt="Vikrant Kamble"><div class="author-info"><div class="author-name">
+        <em>by</em> <span class="p-name">Vikrant Kamble</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://instagram.com/vikrant10622"><i class="fab fa-instagram fa-lg" title="Instagram"></i></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-lg" title="GitHub"></i></a>
+          </li></ul>
+    <time class="page-date dt-published" datetime="2024-03-07T16:00:00-08:00"><a class="u-url" href="">March 7, 2024</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy">ML</li>
+  </ul>
+
+
+        
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p>The goal of this notebook is to understand some details about Huggingface’s <em>dataset</em> and <em>transformer</em> libraries and also as a reference point for fine-tuning a LLM model for a classification task.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="n">transformers</span> <span class="n">datasets</span>
+
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m510.5/510.5 kB[0m [31m7.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m116.3/116.3 kB[0m [31m8.8 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m134.8/134.8 kB[0m [31m13.1 MB/s[0m eta [36m0:00:00[0m
+[?25h
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For NN development, we will be using Pytorch-Lightning package
+</span><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">lightning</span> <span class="o">--</span><span class="n">quiet</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m2.1/2.1 MB[0m [31m7.9 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m840.4/840.4 kB[0m [31m8.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m800.9/800.9 kB[0m [31m9.8 MB/s[0m eta [36m0:00:00[0m
+[?25h
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">lightning</span> <span class="k">as</span> <span class="n">L</span>
+
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">datasets</span> <span class="kn">import</span> <span class="n">load_dataset</span><span class="p">,</span> <span class="n">load_dataset_builder</span><span class="p">,</span> <span class="n">get_dataset_split_names</span>
+<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoModel</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span><span class="p">,</span> <span class="n">optim</span>
+<span class="kn">from</span> <span class="nn">torchmetrics.classification</span> <span class="kn">import</span> <span class="n">BinaryAccuracy</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Setting up the device for GPU usage
+</span><span class="n">device</span> <span class="o">=</span> <span class="s">'cuda'</span> <span class="k">if</span> <span class="n">torch</span><span class="p">.</span><span class="n">cuda</span><span class="p">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s">'cpu'</span>
+<span class="k">print</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cuda
+</code></pre></div></div>
+
+<h2 id="data">Data</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Inspect the dataset
+</span><span class="n">ds_builder</span> <span class="o">=</span> <span class="n">load_dataset_builder</span><span class="p">(</span><span class="s">"imdb"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ds_builder</span><span class="p">.</span><span class="n">info</span><span class="p">.</span><span class="n">description</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ds_builder</span><span class="p">.</span><span class="n">info</span><span class="p">.</span><span class="n">features</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/local/lib/python3.10/dist-packages/huggingface_hub/utils/_token.py:88: UserWarning: 
+The secret `HF_TOKEN` does not exist in your Colab secrets.
+To authenticate with the Hugging Face Hub, create a token in your settings tab (https://huggingface.co/settings/tokens), set it as secret in your Google Colab and restart your session.
+You will be able to reuse this secret in all of your notebooks.
+Please note that authentication is recommended but still optional to access public models or datasets.
+  warnings.warn(
+
+
+
+Downloading readme:   0%|          | 0.00/7.81k [00:00&lt;?, ?B/s]
+
+
+
+{'text': Value(dtype='string', id=None), 'label': ClassLabel(names=['neg', 'pos'], id=None)}
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's inspect the splits
+</span><span class="n">get_dataset_split_names</span><span class="p">(</span><span class="s">"imdb"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>['train', 'test', 'unsupervised']
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Now let's load the train and the test dataset splits
+</span><span class="n">dataset_train</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">"imdb"</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s">"train"</span><span class="p">)</span>
+<span class="n">dataset_test</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">"imdb"</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Downloading data:   0%|          | 0.00/21.0M [00:00&lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/20.5M [00:00&lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/42.0M [00:00&lt;?, ?B/s]
+
+
+
+Generating train split:   0%|          | 0/25000 [00:00&lt;?, ? examples/s]
+
+
+
+Generating test split:   0%|          | 0/25000 [00:00&lt;?, ? examples/s]
+
+
+
+Generating unsupervised split:   0%|          | 0/50000 [00:00&lt;?, ? examples/s]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's now define some key variables
+</span><span class="n">TRAIN_SAMPLE_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">TEST_SAMPLE_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">TRAIN_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">TEST_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="n">MAX_LEN</span> <span class="o">=</span> <span class="mi">200</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For the sake of this tutorial I will subsample to a size of 1000
+</span><span class="n">train_indices</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_train</span><span class="p">),</span>
+                                 <span class="n">size</span><span class="o">=</span><span class="n">TRAIN_SAMPLE_SIZE</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">data_train</span> <span class="o">=</span> <span class="n">dataset_train</span><span class="p">.</span><span class="n">select</span><span class="p">(</span><span class="n">train_indices</span><span class="p">)</span>
+
+<span class="n">test_indices</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_test</span><span class="p">),</span>
+                                <span class="n">size</span><span class="o">=</span><span class="n">TEST_SAMPLE_SIZE</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">dataset_test</span><span class="p">.</span><span class="n">select</span><span class="p">(</span><span class="n">test_indices</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's make sure we have good distribution of class labels
+</span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="n">Counter</span><span class="p">(</span><span class="n">data_train</span><span class="p">[</span><span class="s">'label'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Counter({0: 513, 1: 487})
+</code></pre></div></div>
+
+<h2 id="toknenization">Toknenization</h2>
+
+<p>We can now start to <em>tokenize</em> the input data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">AutoModel</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="p">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s">"bert-base-uncased"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tokenizer_config.json:   0%|          | 0.00/48.0 [00:00&lt;?, ?B/s]
+
+
+
+config.json:   0%|          | 0.00/570 [00:00&lt;?, ?B/s]
+
+
+
+vocab.txt:   0%|          | 0.00/232k [00:00&lt;?, ?B/s]
+
+
+
+tokenizer.json:   0%|          | 0.00/466k [00:00&lt;?, ?B/s]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># We apply the BERT tokenizer with a max_len of 200 and padding or truncating
+# text if needed. Since each `review` is a single entity, we don't require the
+# token_type_ids which should all be just 0's.
+</span><span class="k">def</span> <span class="nf">tokenization</span><span class="p">(</span><span class="n">datarow</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">datarow</span><span class="p">[</span><span class="s">"text"</span><span class="p">],</span> <span class="n">max_length</span><span class="o">=</span><span class="n">MAX_LEN</span><span class="p">,</span>
+                   <span class="n">return_token_type_ids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">'max_length'</span><span class="p">,</span>
+                   <span class="n">truncation</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># As per this (https://huggingface.co/docs/datasets/en/use_dataset),
+# this is a good way to apply tokenization to the entire dataset.
+</span><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">tokenization</span><span class="p">,</span> <span class="n">batched</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">tokenization</span><span class="p">,</span> <span class="n">batched</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Map:   0%|          | 0/1000 [00:00&lt;?, ? examples/s]
+
+
+
+Map:   0%|          | 0/1000 [00:00&lt;?, ? examples/s]
+</code></pre></div></div>
+
+<p>The dataset returns lists in the output. However, we would like to use it in Pytorch and want it to return <code class="language-plaintext highlighter-rouge">tensors</code> instead. To do this, we will set its
+format as described <a href="https://huggingface.co/docs/datasets/en/use_with_pytorch">here</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="n">with_format</span><span class="p">(</span><span class="s">"torch"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="n">with_format</span><span class="p">(</span><span class="s">"torch"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Remove unwanted column 'text' since we have already tokenized it.
+</span><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="n">remove_columns</span><span class="p">(</span><span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s">"text"</span><span class="p">])</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="n">remove_columns</span><span class="p">(</span><span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s">"text"</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>We can pass these Huggingface dataset directly to the Torch Dataloaders.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"batch_size"</span><span class="p">:</span> <span class="n">TRAIN_BATCH_SIZE</span><span class="p">,</span>
+    <span class="s">"shuffle"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">test_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"batch_size"</span><span class="p">:</span> <span class="n">TEST_BATCH_SIZE</span><span class="p">,</span>
+    <span class="s">"shuffle"</span><span class="p">:</span> <span class="bp">False</span>
+<span class="p">}</span>
+
+<span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_train</span><span class="p">,</span> <span class="o">**</span><span class="n">train_params</span><span class="p">)</span>
+<span class="n">test_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_test</span><span class="p">,</span> <span class="o">**</span><span class="n">test_params</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="model">Model</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">FineTuneBert</span><span class="p">(</span><span class="n">L</span><span class="p">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bert_backbone</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">bert_backbone</span> <span class="o">=</span> <span class="n">bert_backbone</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="c1"># In the loss function, there are multiple ways we can go:
+</span>        <span class="c1"># 1. Use CrossEntropyLoss, in which case the out_features = 2
+</span>        <span class="c1"># 2. Use BCELoss, in which case the out_features = 1, but we need an additional
+</span>        <span class="c1">#    sigmoid layer at the end.
+</span>        <span class="c1"># 3. BCEWithLogitsLoss, in which case the out_features = 1, but we do not need
+</span>        <span class="c1">#    an additional sigmoid layer - WE WILL BE USING THIS.
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">):</span>
+        <span class="c1"># pass the inputs through the backbone
+</span>        <span class="c1"># The output of BERT is last_hidden_state and pooler_output. Here we are
+</span>        <span class="c1"># concerned about the latter.
+</span>        <span class="n">_</span><span class="p">,</span> <span class="n">bert_output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">bert_backbone</span><span class="p">(</span><span class="n">input_ids</span><span class="o">=</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">bert_output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="p">.</span><span class="n">AdamW</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">optimizer</span>
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">label</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'label'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'input_ids'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'attention_mask'</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">forward</span><span class="p">(</span><span class="n">input_ids</span><span class="o">=</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">functional</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">.</span><span class="nb">float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">label</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'label'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'input_ids'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'attention_mask'</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">test_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">functional</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">.</span><span class="nb">float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">"test_loss"</span><span class="p">,</span> <span class="n">test_loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c1"># Compute accuracy
+</span>        <span class="n">acc_metric</span> <span class="o">=</span> <span class="n">BinaryAccuracy</span><span class="p">().</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">"test_acc"</span><span class="p">,</span> <span class="n">acc_metric</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span> <span class="n">on_epoch</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bert</span> <span class="o">=</span> <span class="n">AutoModel</span><span class="p">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s">"bert-base-uncased"</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">FineTuneBert</span><span class="p">(</span><span class="n">bert_backbone</span><span class="o">=</span><span class="n">bert</span><span class="p">)</span>
+<span class="n">model</span><span class="p">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>FineTuneBert(
+  (bert_backbone): BertModel(
+    (embeddings): BertEmbeddings(
+      (word_embeddings): Embedding(30522, 768, padding_idx=0)
+      (position_embeddings): Embedding(512, 768)
+      (token_type_embeddings): Embedding(2, 768)
+      (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+    (encoder): BertEncoder(
+      (layer): ModuleList(
+        (0-11): 12 x BertLayer(
+          (attention): BertAttention(
+            (self): BertSelfAttention(
+              (query): Linear(in_features=768, out_features=768, bias=True)
+              (key): Linear(in_features=768, out_features=768, bias=True)
+              (value): Linear(in_features=768, out_features=768, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+            (output): BertSelfOutput(
+              (dense): Linear(in_features=768, out_features=768, bias=True)
+              (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+          (intermediate): BertIntermediate(
+            (dense): Linear(in_features=768, out_features=3072, bias=True)
+            (intermediate_act_fn): GELUActivation()
+          )
+          (output): BertOutput(
+            (dense): Linear(in_features=3072, out_features=768, bias=True)
+            (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+    (pooler): BertPooler(
+      (dense): Linear(in_features=768, out_features=768, bias=True)
+      (activation): Tanh()
+    )
+  )
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc1): Linear(in_features=768, out_features=1, bias=True)
+)
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trainer</span> <span class="o">=</span> <span class="n">L</span><span class="p">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">max_epochs</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">trainer</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataloaders</span><span class="o">=</span><span class="n">train_dataloader</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO: GPU available: True (cuda), used: True
+INFO:lightning.pytorch.utilities.rank_zero:GPU available: True (cuda), used: True
+INFO: TPU available: False, using: 0 TPU cores
+INFO:lightning.pytorch.utilities.rank_zero:TPU available: False, using: 0 TPU cores
+INFO: IPU available: False, using: 0 IPUs
+INFO:lightning.pytorch.utilities.rank_zero:IPU available: False, using: 0 IPUs
+INFO: HPU available: False, using: 0 HPUs
+INFO:lightning.pytorch.utilities.rank_zero:HPU available: False, using: 0 HPUs
+INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO: 
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+INFO:lightning.pytorch.callbacks.model_summary:
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+
+
+
+Training: |          | 0/? [00:00&lt;?, ?it/s]
+
+
+INFO: `Trainer.fit` stopped: `max_epochs=5` reached.
+INFO:lightning.pytorch.utilities.rank_zero:`Trainer.fit` stopped: `max_epochs=5` reached.
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trainer</span><span class="p">.</span><span class="n">test</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">dataloaders</span><span class="o">=</span><span class="n">test_dataloader</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+
+
+Testing: |          | 0/? [00:00&lt;?, ?it/s]
+</code></pre></div></div>
+
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃<span style="font-weight: bold">        Test metric        </span>┃<span style="font-weight: bold">       DataLoader 0        </span>┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│<span style="color: #008080; text-decoration-color: #008080">         test_acc          </span>│<span style="color: #800080; text-decoration-color: #800080">    0.8849999904632568     </span>│
+│<span style="color: #008080; text-decoration-color: #008080">         test_loss         </span>│<span style="color: #800080; text-decoration-color: #800080">    0.39432957768440247    </span>│
+└───────────────────────────┴───────────────────────────┘
+</pre>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[{'test_loss': 0.39432957768440247, 'test_acc': 0.8849999904632568}]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fml%2Fbert_movie_reviews%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--facebook btn--small"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=IMDB+movie+reviews%20http%3A%2F%2Flocalhost%3A4000%2Fml%2Fbert_movie_reviews%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--twitter btn--small"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Fml%2Fbert_movie_reviews%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--linkedin btn--small"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=IMDB+movie+reviews&url=http%3A%2F%2Flocalhost%3A4000%2Fml%2Fbert_movie_reviews%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--reddit btn--small"><i class="fab fa-fw fa-reddit" aria-hidden="true"></i> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="/algorithms/sliding-windows/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <i class="fas fa-arrow-left"></i> Arrays
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="/ml/ml-design/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        ML Design
+ <i class="fas fa-arrow-right"></i>
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-2x" title="GitHub"></i></a></div><div class="copyright">
+    
+      <p>&copy; 2024 Stochastic Entity. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/mmistakes/so-simple-theme" rel="nofollow">So Simple</a>.</p>
+    
+  </div>
+</footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"></script>
+
+<!-- for mathjax support -->
+  </body>
+
+</html>

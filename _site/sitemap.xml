@@ -1,0 +1,1138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Stochastic Entity</title>
+    <description>Personal blog for ideas and docs.</description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/sitemap.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 15 Mar 2024 12:36:54 -0700</pubDate>
+    <lastBuildDate>Fri, 15 Mar 2024 12:36:54 -0700</lastBuildDate>
+    <generator>Jekyll v4.3.3</generator>
+    
+      <item>
+        <title>ML Design</title>
+        <description>&lt;p&gt;A ML design task can broadly be classified into the following components, in order of priority:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Defining &lt;em&gt;success&lt;/em&gt; metrics&lt;/li&gt;
+  &lt;li&gt;Data pipelines&lt;/li&gt;
+  &lt;li&gt;Backend model design&lt;/li&gt;
+  &lt;li&gt;Online model design&lt;/li&gt;
+  &lt;li&gt;Model evaluation&lt;/li&gt;
+  &lt;li&gt;Model monitoring&lt;/li&gt;
+  &lt;li&gt;Serving&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;defining-success-metrics&quot;&gt;Defining &lt;em&gt;success&lt;/em&gt; metrics&lt;/h1&gt;
+
+&lt;p&gt;The most important aspect when building a ML system for a specific task is to be able to identify the &lt;em&gt;sucess&lt;/em&gt; criteria. For example, for a recommendation system, this could be user click-rate or engagement, while for a predictive system, this could be as simple as mean abosolute error.&lt;/p&gt;
+
+&lt;h1 id=&quot;data-pipelines&quot;&gt;Data pipelines&lt;/h1&gt;
+
+&lt;p&gt;These essentially define how data for training or inference is flowing in, how it is ingested, what pipelines are setup for ETL. At this stage, we also need to think about the refresh rate, how the data is stored, what’s an optimal way to fetch the data, etc. For example for training a recommendation system, one might need past click data, plus user data; each of which can be stored separtely and have their associated pipelines for data cleaning and normalization.&lt;/p&gt;
+
+&lt;h1 id=&quot;backend-model-design&quot;&gt;Backend model design&lt;/h1&gt;
+
+&lt;p&gt;If the task at hand involves user engagement and personalization, then the ML task can be broken into two component - a &lt;strong&gt;backend&lt;/strong&gt; model component that operates at a lower refresh rate (high latency) and an &lt;strong&gt;online&lt;/strong&gt; model component that needs to have a small latency. This latency requirements impose the model architechtures that can be used. For example, for online task, a small light-weight model would be the right choice. The backend model usually will process data in batch, i.e. for thousands of users at a time. It is always useful to have a simple model that can be treated as a baseline against which to measure any other complex model.&lt;/p&gt;
+
+&lt;h1 id=&quot;online-model-design&quot;&gt;Online model design&lt;/h1&gt;
+
+&lt;p&gt;The online model only needs to process a single item &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;batch_size=1&lt;/code&gt; at a time. At the start of each &lt;strong&gt;session&lt;/strong&gt; the current state is simply the output of the last run of the &lt;strong&gt;backend model&lt;/strong&gt; $A^{[l-1]}$. Each interaction can be thought of as a new datapoint token $x^{[l]}$. The job of the online model is to then compute the new state given the previous state and the new data point in some fashion. In the simplest case, this could just be a linear model: $A^{[l]} = W (A^{[l-1]}, x^{[l]})$. The interaction data-point is backed up into a database or an object store of some kind to be able to provide users history of their interactions.&lt;/p&gt;
+
+&lt;h1 id=&quot;model-evaluation&quot;&gt;Model evaluation&lt;/h1&gt;
+
+&lt;h1 id=&quot;serving&quot;&gt;Serving&lt;/h1&gt;
+
+&lt;h1 id=&quot;model-monitoring&quot;&gt;Model monitoring&lt;/h1&gt;
+
+&lt;p&gt;Model deteriorate over time, either due to covariate shifts or biases. It is therefore important to track relevant monitoring metrics. This allows us to identify when a if either a re-training needs to be done or if the model architechture as a whole needs to be updated.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 09 Mar 2024 16:00:00 -0800</pubDate>
+        <link>http://localhost:4000/ml/ml-design/</link>
+        <guid isPermaLink="true">http://localhost:4000/ml/ml-design/</guid>
+        
+        
+        <category>ML</category>
+        
+      </item>
+    
+      <item>
+        <title>IMDB movie reviews</title>
+        <description>&lt;p&gt;The goal of this notebook is to understand some details about Huggingface’s &lt;em&gt;dataset&lt;/em&gt; and &lt;em&gt;transformer&lt;/em&gt; libraries and also as a reference point for fine-tuning a LLM model for a classification task.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pip&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;q&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datasets&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m510.5/510.5 kB[0m [31m7.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m116.3/116.3 kB[0m [31m8.8 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m134.8/134.8 kB[0m [31m13.1 MB/s[0m eta [36m0:00:00[0m
+[?25h
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# For NN development, we will be using Pytorch-Lightning package
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pip&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lightning&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;quiet&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m2.1/2.1 MB[0m [31m7.9 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m840.4/840.4 kB[0m [31m8.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m800.9/800.9 kB[0m [31m9.8 MB/s[0m eta [36m0:00:00[0m
+[?25h
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torch&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;lightning&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;metrics&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;collections&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Counter&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;datasets&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;load_dataset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;load_dataset_builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get_dataset_split_names&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torch.utils.data&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataLoader&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torch&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optim&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torchmetrics.classification&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BinaryAccuracy&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Setting up the device for GPU usage
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'cuda'&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cuda&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;is_available&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'cpu'&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cuda
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;data&quot;&gt;Data&lt;/h2&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Inspect the dataset
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ds_builder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;load_dataset_builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;imdb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ds_builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ds_builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/usr/local/lib/python3.10/dist-packages/huggingface_hub/utils/_token.py:88: UserWarning: 
+The secret `HF_TOKEN` does not exist in your Colab secrets.
+To authenticate with the Hugging Face Hub, create a token in your settings tab (https://huggingface.co/settings/tokens), set it as secret in your Google Colab and restart your session.
+You will be able to reuse this secret in all of your notebooks.
+Please note that authentication is recommended but still optional to access public models or datasets.
+  warnings.warn(
+
+
+
+Downloading readme:   0%|          | 0.00/7.81k [00:00&amp;lt;?, ?B/s]
+
+
+
+{'text': Value(dtype='string', id=None), 'label': ClassLabel(names=['neg', 'pos'], id=None)}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Let's inspect the splits
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_dataset_split_names&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;imdb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;['train', 'test', 'unsupervised']
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Now let's load the train and the test dataset splits
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;load_dataset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;imdb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;train&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dataset_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;load_dataset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;imdb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Downloading data:   0%|          | 0.00/21.0M [00:00&amp;lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/20.5M [00:00&amp;lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/42.0M [00:00&amp;lt;?, ?B/s]
+
+
+
+Generating train split:   0%|          | 0/25000 [00:00&amp;lt;?, ? examples/s]
+
+
+
+Generating test split:   0%|          | 0/25000 [00:00&amp;lt;?, ? examples/s]
+
+
+
+Generating unsupervised split:   0%|          | 0/50000 [00:00&amp;lt;?, ? examples/s]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Let's now define some key variables
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TRAIN_SAMPLE_SIZE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TEST_SAMPLE_SIZE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TRAIN_BATCH_SIZE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TEST_BATCH_SIZE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;EPOCHS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;LEARNING_RATE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1e-5&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;MAX_LEN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# For the sake of this tutorial I will subsample to a size of 1000
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_indices&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;choice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                                 &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TRAIN_SAMPLE_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;replace&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_indices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;test_indices&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;choice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TEST_SAMPLE_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;replace&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_indices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Let's make sure we have good distribution of class labels
+&lt;/span&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;collections&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Counter&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Counter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'label'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Counter({0: 513, 1: 487})
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;toknenization&quot;&gt;Toknenization&lt;/h2&gt;
+
+&lt;p&gt;We can now start to &lt;em&gt;tokenize&lt;/em&gt; the input data.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoModel&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bert-base-uncased&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tokenizer_config.json:   0%|          | 0.00/48.0 [00:00&amp;lt;?, ?B/s]
+
+
+
+config.json:   0%|          | 0.00/570 [00:00&amp;lt;?, ?B/s]
+
+
+
+vocab.txt:   0%|          | 0.00/232k [00:00&amp;lt;?, ?B/s]
+
+
+
+tokenizer.json:   0%|          | 0.00/466k [00:00&amp;lt;?, ?B/s]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# We apply the BERT tokenizer with a max_len of 200 and padding or truncating
+# text if needed. Since each `review` is a single entity, we don't require the
+# token_type_ids which should all be just 0's.
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;tokenization&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;datarow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;datarow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MAX_LEN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;return_token_type_ids&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;padding&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'max_length'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;truncation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# As per this (https://huggingface.co/docs/datasets/en/use_dataset),
+# this is a good way to apply tokenization to the entire dataset.
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenization&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batched&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenization&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batched&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Map:   0%|          | 0/1000 [00:00&amp;lt;?, ? examples/s]
+
+
+
+Map:   0%|          | 0/1000 [00:00&amp;lt;?, ? examples/s]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The dataset returns lists in the output. However, we would like to use it in Pytorch and want it to return &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tensors&lt;/code&gt; instead. To do this, we will set its
+format as described &lt;a href=&quot;https://huggingface.co/docs/datasets/en/use_with_pytorch&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;torch&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;torch&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Remove unwanted column 'text' since we have already tokenized it.
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remove_columns&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;column_names&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remove_columns&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;column_names&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We can pass these Huggingface dataset directly to the Torch Dataloaders.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;train_params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;batch_size&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TRAIN_BATCH_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;shuffle&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;test_params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;batch_size&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TEST_BATCH_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;shuffle&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;train_dataloader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_dataloader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;model&quot;&gt;Model&lt;/h2&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FineTuneBert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LightningModule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bert_backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bert_backbone&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bert_backbone&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dropout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dropout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;# In the loss function, there are multiple ways we can go:
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# 1. Use CrossEntropyLoss, in which case the out_features = 2
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# 2. Use BCELoss, in which case the out_features = 1, but we need an additional
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;#    sigmoid layer at the end.
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# 3. BCEWithLogitsLoss, in which case the out_features = 1, but we do not need
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;#    an additional sigmoid layer - WE WILL BE USING THIS.
+&lt;/span&gt;        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fc1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_features&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;768&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_features&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# pass the inputs through the backbone
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# The output of BERT is last_hidden_state and pooler_output. Here we are
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# concerned about the latter.
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bert_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bert_backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;return_dict&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dropout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bert_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fc1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;configure_optimizers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;optimizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AdamW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LEARNING_RATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optimizer&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;training_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'label'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'input_ids'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'attention_mask'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;preds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;functional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binary_cross_entropy_with_logits&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;preds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'train_loss'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prog_bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loss&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'label'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'input_ids'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'attention_mask'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;preds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;test_loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;functional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binary_cross_entropy_with_logits&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;preds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;test_loss&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_loss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prog_bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;# Compute accuracy
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;acc_metric&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BinaryAccuracy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;test_acc&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;acc_metric&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;preds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on_epoch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;bert&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bert-base-uncased&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FineTuneBert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bert_backbone&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;FineTuneBert(
+  (bert_backbone): BertModel(
+    (embeddings): BertEmbeddings(
+      (word_embeddings): Embedding(30522, 768, padding_idx=0)
+      (position_embeddings): Embedding(512, 768)
+      (token_type_embeddings): Embedding(2, 768)
+      (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+    (encoder): BertEncoder(
+      (layer): ModuleList(
+        (0-11): 12 x BertLayer(
+          (attention): BertAttention(
+            (self): BertSelfAttention(
+              (query): Linear(in_features=768, out_features=768, bias=True)
+              (key): Linear(in_features=768, out_features=768, bias=True)
+              (value): Linear(in_features=768, out_features=768, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+            (output): BertSelfOutput(
+              (dense): Linear(in_features=768, out_features=768, bias=True)
+              (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+          (intermediate): BertIntermediate(
+            (dense): Linear(in_features=768, out_features=3072, bias=True)
+            (intermediate_act_fn): GELUActivation()
+          )
+          (output): BertOutput(
+            (dense): Linear(in_features=3072, out_features=768, bias=True)
+            (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+    (pooler): BertPooler(
+      (dense): Linear(in_features=768, out_features=768, bias=True)
+      (activation): Tanh()
+    )
+  )
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc1): Linear(in_features=768, out_features=1, bias=True)
+)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_epochs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_dataloaders&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_dataloader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;INFO: GPU available: True (cuda), used: True
+INFO:lightning.pytorch.utilities.rank_zero:GPU available: True (cuda), used: True
+INFO: TPU available: False, using: 0 TPU cores
+INFO:lightning.pytorch.utilities.rank_zero:TPU available: False, using: 0 TPU cores
+INFO: IPU available: False, using: 0 IPUs
+INFO:lightning.pytorch.utilities.rank_zero:IPU available: False, using: 0 IPUs
+INFO: HPU available: False, using: 0 HPUs
+INFO:lightning.pytorch.utilities.rank_zero:HPU available: False, using: 0 HPUs
+INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO: 
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+INFO:lightning.pytorch.callbacks.model_summary:
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+
+
+
+Training: |          | 0/? [00:00&amp;lt;?, ?it/s]
+
+
+INFO: `Trainer.fit` stopped: `max_epochs=5` reached.
+INFO:lightning.pytorch.utilities.rank_zero:`Trainer.fit` stopped: `max_epochs=5` reached.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataloaders&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_dataloader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+
+
+Testing: |          | 0/? [00:00&amp;lt;?, ?it/s]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;pre style=&quot;white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace&quot;&gt;┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃&lt;span style=&quot;font-weight: bold&quot;&gt;        Test metric        &lt;/span&gt;┃&lt;span style=&quot;font-weight: bold&quot;&gt;       DataLoader 0        &lt;/span&gt;┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│&lt;span style=&quot;color: #008080; text-decoration-color: #008080&quot;&gt;         test_acc          &lt;/span&gt;│&lt;span style=&quot;color: #800080; text-decoration-color: #800080&quot;&gt;    0.8849999904632568     &lt;/span&gt;│
+│&lt;span style=&quot;color: #008080; text-decoration-color: #008080&quot;&gt;         test_loss         &lt;/span&gt;│&lt;span style=&quot;color: #800080; text-decoration-color: #800080&quot;&gt;    0.39432957768440247    &lt;/span&gt;│
+└───────────────────────────┴───────────────────────────┘
+&lt;/pre&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[{'test_loss': 0.39432957768440247, 'test_acc': 0.8849999904632568}]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+</description>
+        <pubDate>Thu, 07 Mar 2024 16:00:00 -0800</pubDate>
+        <link>http://localhost:4000/ml/bert_movie_reviews/</link>
+        <guid isPermaLink="true">http://localhost:4000/ml/bert_movie_reviews/</guid>
+        
+        
+        <category>ML</category>
+        
+      </item>
+    
+      <item>
+        <title>Arrays</title>
+        <description>&lt;p&gt;One of the most basic things that one can do with an array is to have a pointer or a set of pointers that
+traverse the array in some fashion. The number of pointers to &lt;em&gt;book-keep&lt;/em&gt; depends on the question at hand.
+Let’s look at few sample problems to understand this concept:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Given an array &lt;em&gt;nums&lt;/em&gt; compute the largest element.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To find the largest element, we have to &lt;em&gt;at-least&lt;/em&gt; visit each element in the array. Thus we need 
+a &lt;strong&gt;single&lt;/strong&gt; pointer to traverse the array. We will reserve a constant memory space that holds the value
+of the largest element or at least the index of the position that holds the largest element.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get_largest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;largest_num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'-inf'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;largest_num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;largest_num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;largest_num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'-inf'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;largest_num&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Given an array &lt;em&gt;nums&lt;/em&gt; and a &lt;em&gt;target&lt;/em&gt; check if target exists in the array.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since we are not given any extra information as to the structure of the array, e.g. sorted or not, 
+we should write a solution for the generic case. Similar to the previous case, we &lt;em&gt;need&lt;/em&gt; a pointer that 
+scans through the array and at each step check for equality of the element with the target. This gives 
+us $O(n)$ time complexity and $O(1)$ space complexity algorithm as follows:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;find_target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Given a &lt;strong&gt;sorted&lt;/strong&gt; array &lt;em&gt;nums&lt;/em&gt; and a &lt;em&gt;target&lt;/em&gt; check if there exists $(i, j)$ such that $nums[i] + nums[j] = target$ and $i \ne j$.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since we need to find two elements from the array that sum to the target, we should probably use two pointers. But the questions is where 
+should they be placed &lt;em&gt;initially&lt;/em&gt;. Ideally we would like to, on each iteration, &lt;em&gt;update&lt;/em&gt; one or both the pointers and the updates should be such 
+that we &lt;em&gt;march&lt;/em&gt; towards the &lt;em&gt;breaking&lt;/em&gt; or &lt;em&gt;end-of-iteration&lt;/em&gt; criteria. In this case, we should place one pointer at the beginning and the 
+other at the end. We will call them &lt;em&gt;left&lt;/em&gt; and &lt;em&gt;right&lt;/em&gt; respectively. If the sum of the elements at these positions is &lt;em&gt;greater&lt;/em&gt; than the target, 
+then the only way to bring down the sum is to decrease the &lt;em&gt;right&lt;/em&gt; pointer. Conversly, if the sum is &lt;em&gt;smaller&lt;/em&gt; than the target, the only 
+way to increase the sum is to update the &lt;em&gt;left&lt;/em&gt; pointer. Note that the we can make the above two statements only in this specific case of 
+sorted array. If they sum to the target, we have found the pair and simply exit the iteration.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;two_sum_sorted&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;curr_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curr_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curr_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/container_most_water.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;most_water_container&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;max_water_content&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'-inf'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Water content = width * (bar with the lower height of the two)
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;water_content&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;max_water_content&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_water_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;water_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;# Which pointer to update? We will be making the width smaller with
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# the next pointer update, so the only hope for increasing the water content
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# is to increse the minimum height. Hence we should update the pointer
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# of the bar with the lower height of the two.
+&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;left&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;heights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;left&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_water_content&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;subarray_less_than_target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;follower&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;total_count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# We keep on increasing the `leading` pointer until we 
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# reach the end of the input or until we reach an element which
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# is not smaller than the target.
+&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nums&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;# Once we break out of the above while loop, we have reached 
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# a new subarray (followe:leader) where all the elements are less than target.
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;curr_length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;follower&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curr_length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;total_count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        
+        &lt;span class=&quot;c1&quot;&gt;# We then repeat the process from the next element.
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;follower&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;leader&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total_count&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+</description>
+        <pubDate>Thu, 07 Mar 2024 16:00:00 -0800</pubDate>
+        <link>http://localhost:4000/algorithms/sliding-windows/</link>
+        <guid isPermaLink="true">http://localhost:4000/algorithms/sliding-windows/</guid>
+        
+        
+        <category>algorithms</category>
+        
+      </item>
+    
+      <item>
+        <title>Combinatorics, Tail sum for expectation and Simplices</title>
+        <description>&lt;p&gt;&lt;strong&gt;1. How many different ways are possible to have $k-tuple$ with &lt;em&gt;non-negative integer&lt;/em&gt; values such that they sum to a given value $n$?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;$\to $To arrive at the solution, one can use the $stars-and-bars$ method. Let’s draw a sequence of n stars. There are $n-1$ spaces between the stars. What we need to do now to create $k$ numbers, is to place $k-1$ bars in those spaces. One such possibility for $n=6$ and $k=3$ is as follows:&lt;/p&gt;
+
+\[\star\ | \star\  \star\ \star\ | \star\ \star \quad \quad \to 3-tuple\ (1, 3, 2)\]
+
+&lt;p&gt;Thus we need to choose $k-1$ locations out of the $n-1$ spaces available. The number of such combinations possible is thus $\binom{n-1}{k-1}$.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;2. What if we allowed for the values to be 0? How many combinations are possible then?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;$\to$ In the above case when all is done we placed $n+k-1$ objects(stars + bars). We were restricted by the fact that the values had to be &lt;em&gt;non-negative&lt;/em&gt;. So we had to place the bars in the gaps between stars. However, now we do not have any such restriction. We can first choose $k-1$ slots out of $n+k-1$ slots available to place the bars. Once that is done, we just place the $n$ stars in the $n$ slots remaining. One such possibility for $n=6$ and $k=3$ is as follows:&lt;/p&gt;
+
+\[\underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star} \quad \quad \to 3-tuple\ (0, 3, 3)\]
+
+&lt;p&gt;Given this discussion, the number of combinations of $k-tuple$ possible is $\binom{n+k-1}{k-1} = \binom{n+k-1}{n}$. This number is also known as the &lt;a href=&quot;https://en.wikipedia.org/wiki/Multiset&quot;&gt;multiset coefficient&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;3. We roll a fair dice $n$ times. What is the probability that all faces have appeared?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Lets $\mathcal{I_i}$ be the number of times a face $i$ has appeared after the dice has been rolled $n$ times. What we need is a $6-tuple\ (\mathcal{I_1}, \mathcal{I_2}, \mathcal{I_3}, \mathcal{I_4}, \mathcal{I_5}, \mathcal{I_6})$ such that the elements sum to $n$, and &lt;strong&gt;none&lt;/strong&gt; of the values $\mathcal{I_i}$ are 0. The probability that all faces have appeared is then the result given in Que. 1 divided by the results given in Que 2.&lt;/p&gt;
+
+&lt;p&gt;
+\begin{align}
+prob = \binom{n-1}{k-1} / \binom{n+k-1}{k-1} &amp;amp;= \frac{n!\ (n-1)!}{(n-k)!\ (n+k-1)!}\\
+  &amp;amp;= \frac{n!\ (n-1)!}{(n-6)!\ (n+5)!} \qquad \qquad k = 6
+\end{align}
+&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The &lt;em&gt;tail sum for expectation&lt;/em&gt; formula for a non-negative integer random number is given as:&lt;/p&gt;
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty P(X &amp;gt; x)\]
+
+&lt;p&gt;Proof: To show this, one can use an interesting identity for any non-negative integer given by:&lt;/p&gt;
+
+\[x = \sum_{k=0}^\infty \mathcal{I}(x &amp;gt; k),\]
+
+&lt;p&gt;where $\mathcal{I}(condition)$ is an indicator function that evaluates to $1$ if condition is true, else 0. The well known formula for expectation can then becomes:&lt;/p&gt;
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty \sum_{k=0}^\infty  \mathcal{I}(x &amp;gt; k)\ P(X = x).\]
+
+&lt;p&gt;Switching the order of summation, we get the required result:&lt;/p&gt;
+
+\[E[X] = \sum_{k=0}^\infty \sum_{x=0}^\infty \mathcal{I}(x &amp;gt; k)\ P(X = x) = \sum_{k=0}^\infty P(X &amp;gt; k).\]
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;4. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;If we independently draw $d$ times from Uniform distribution $\mathcal{U}[0, 1]$, the state-space of all possibilities correspond to the region $S$ in the following diagram (shown for $d=2$ and $d=3$):&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/simplex.png&quot; width=&quot;500&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Each point in the region has equal probability. The state-space where the sum of the two draw is less than $1$ is then given by the region $R$. The probability that the sum of the samples drawn is less than $1$ is then the &lt;em&gt;volume&lt;/em&gt; of $R$ divided by the &lt;em&gt;volume&lt;/em&gt; of $S$.&lt;/p&gt;
+
+&lt;blockquote&gt;
+The region $S$ is nothing but a hypercube in $d$-dimensions where $d$ is the number of draws. For $d=2$, it is a square, for $d=3$ it is a cube and so on. Since each side of this hypercube has length $1$, the volume of $S$ is trivially $1$.
+&lt;/blockquote&gt;
+
+&lt;p&gt;The region $R$ in $d$-dimensions is nothing but a &lt;a href=&quot;https://en.wikipedia.org/wiki/Simplex&quot;&gt;standard $d-simplex$&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+The volume of such a simplex can be shown to be $\frac{1}{d!}$.
+&lt;/blockquote&gt;
+
+&lt;p&gt;We can easily verify this for a couple of dimensions.&lt;/p&gt;
+
+&lt;p&gt;
+\begin{align}
+Vol(2-simplex) &amp;amp;= \int_{x=0}^1 \int_{y=0}^{1-x} dx\ dy = 1/2! \\
+Vol(3-simplex) &amp;amp;= \int_{x=0}^1 \int_{y=0}^{1-x} \int_{z=0}^{1-x-y} dx\ dy\ dz = 1/3!
+\end{align}
+&lt;/p&gt;
+
+&lt;p&gt;Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ draws from the distribution such that the cumulative sum of the draws is greater than or equal to $1$.&lt;/p&gt;
+
+\[E[X] =  \sum_{x=0}^\infty x\ P(X = x)\]
+
+&lt;p&gt;Using the tail sum for expectation, we can write:&lt;/p&gt;
+
+\[E[X] =  \sum_{x=0}^\infty P(X &amp;gt; x)\]
+
+&lt;p&gt;$P(X &amp;gt; x)$ means the probability that one requires more than $x$ draws to reach a sum greater than $1$. This can also be thought as the probability that in $x$ rolls, one obtained a sum less than $1$. Interestingly, this value is nothing but the volume of region $R$. Thus we have&lt;/p&gt;
+
+\[E[X] =  \sum_{x=0}^\infty P(X &amp;gt; x) = \sum_{x=0}^\infty \frac{1}{x!} = e \quad \quad (surprise!!!)\]
+
+&lt;p&gt;Thus, the average number of draws required till the cumulative sum of the draws is greater than or equal to $1$ is $e$.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 15 Dec 2019 09:23:00 -0800</pubDate>
+        <link>http://localhost:4000/statistics/combinatorics/</link>
+        <guid isPermaLink="true">http://localhost:4000/statistics/combinatorics/</guid>
+        
+        
+        <category>statistics</category>
+        
+      </item>
+    
+      <item>
+        <title>Absorbing Markov Chains</title>
+        <description>&lt;p&gt;A Markov chain containing absorbing states is known as an absorbing Markov chain. So what is an absorbing state. In simple words, if you end up on an absorbing state you can’t go anywhere else; you are stuck there for all eternity. In other words, the probability of transition from an absorbing state $i$ to any other non-absorbing state, also called transient states, is 0.&lt;/p&gt;
+
+&lt;p&gt;At this point, we can make an observation:&lt;/p&gt;
+
+&lt;blockquote&gt;
+0. The probability of eventually begin absorbed into any of the absorbing states given that one starts from anywhere is 1.
+&lt;/blockquote&gt;
+
+&lt;p&gt;Let’s say we have $n$ transient states and $m$ absorbing states in the state space of any system. The transition matrix for such a system can be written as:&lt;/p&gt;
+
+&lt;p&gt;$$T = \left[ \begin{matrix} Q &amp;amp; R \\ 0 &amp;amp; I \end{matrix} \right],$$&lt;/p&gt;
+
+&lt;p&gt;where $Q$ of shape ($n \times n$) gives the probability of transitioning from transient state $i$ to transient state $j$. The matrix $R$ of shape $n \times m$ gives the probability of transitioning from transient state $i$ to absorbing state $j$, and $I$ of identity matrix of shape $m$.&lt;/p&gt;
+
+&lt;p&gt;We can compute the respective probability weights of the various states given a current probability weights by applying the transition matrix following the Markov property:&lt;/p&gt;
+
+\[v_{k+1} = T\ v_{k}\]
+
+&lt;p&gt;Recursively expanding the above equation to the starting state $v_0$, we have&lt;/p&gt;
+
+\[v_{k} = T^k\ v_{0}\]
+
+&lt;p&gt;It is interesting to compute what $T^k$ is:&lt;/p&gt;
+
+&lt;p&gt;
+$$
+\begin{align}
+T^2 &amp;amp;= \begin{bmatrix} Q &amp;amp; R \\ 0 &amp;amp; I \end{bmatrix} \begin{bmatrix} Q &amp;amp; R \\ 0 &amp;amp; I \end{bmatrix} = \begin{bmatrix} Q^2 &amp;amp; QR + RI \\ 0 &amp;amp; I \end{bmatrix} \\
+T^3 &amp;amp;= \begin{bmatrix} Q &amp;amp; R \\ 0 &amp;amp; I \end{bmatrix} \begin{bmatrix} Q^2 &amp;amp; QR + RI \\ 0 &amp;amp; I \end{bmatrix} = \begin{bmatrix} Q^3 &amp;amp; Q^2R + QR + RI \\ 0 &amp;amp; I \end{bmatrix}
+\end{align}
+$$
+&lt;/p&gt;
+
+&lt;p&gt;Given the pattern we can write&lt;/p&gt;
+
+&lt;p&gt;$$T^k = \begin{bmatrix} Q^k &amp;amp; R(I + Q + Q^2 + ... + Q^k) \\ 0 &amp;amp; I \end{bmatrix}$$&lt;/p&gt;
+
+&lt;p&gt;Using the summation formula for a geometric sequence we can write:&lt;/p&gt;
+
+&lt;p&gt;$$ T^k = \begin{bmatrix} Q^k &amp;amp; R \left(\frac{I - Q^k}{I - Q}\right) \\ 0 &amp;amp; I \end{bmatrix} $$&lt;/p&gt;
+
+&lt;p&gt;From the above formula, we note that:&lt;/p&gt;
+&lt;blockquote&gt;
+1. the probability the system is in transient state $j$ given that it started in transient state $i$ after $k$ steps is given by the $(i, j)^{th}$ entry of the matrix $Q^k$
+&lt;/blockquote&gt;
+
+&lt;p&gt;The entries of $Q$ are all smaller than 1, given that these are probabilities. Hence we have $\lim_{k \to \infty} Q^k = 0$. This allows us to write&lt;/p&gt;
+
+&lt;p&gt;$$T^\infty = \begin{bmatrix} 0 &amp;amp; R \left(\frac{1}{I - Q}\right) \\ 0 &amp;amp; I \end{bmatrix} = \begin{bmatrix} 0 &amp;amp; NR \\ 0 &amp;amp; I \end{bmatrix},$$&lt;/p&gt;
+
+&lt;p&gt;where $N = [I - Q]^{-1}$ is known as the fundamental matrix. The $0’s$ in the first column of the above matrix proves statement given in blockquote 0.&lt;/p&gt;
+
+&lt;p&gt;From the above formula, we note that:&lt;/p&gt;
+
+&lt;blockquote&gt;
+2. the probability the system ends up in absorbing state $j$ given that it started in transient state $i$ is the $(i, j)^{th}$ entry of the matrix $NR$.
+&lt;/blockquote&gt;
+
+&lt;p&gt;The fundamental matrix $N$ has a very interesting interpretation:&lt;/p&gt;
+&lt;blockquote&gt;
+3. its $(i, j)^{th}$ entry corresponds to the expected number of times the system visits transient state $j$ given that it started in transient state $i$, before being absorbed.
+&lt;/blockquote&gt;
+
+&lt;p&gt;To see this, let us use a random indicator variable $\mathcal{I}_k$ which is 1 if the system is in state $j$ during $k^{th}$ step, else 0. The expected value of this indicator variable is:&lt;/p&gt;
+
+\[E[\mathcal{I}_k] = 1 \times prob(\mathcal{I}_k = 1) + 0 \times  prob(\mathcal{I}_k = 1) = Q^k_{i, j} \quad ......... \text{refer blockquote 1}\]
+
+&lt;p&gt;The total number of visits we make to state $j$ in $n$ steps of the Markov chain is simply summing up all these indicator variables (one for each step).&lt;/p&gt;
+
+\[\text{total_visits after $n$ steps} = \mathcal{I}_0 + \mathcal{I}_1 + \mathcal{I}_2 + .....+\ \mathcal{I}_n\]
+
+&lt;p&gt;Taking the expectation we get&lt;/p&gt;
+
+&lt;p&gt;
+$$
+\begin{align}
+E[\text{total_visits after $n$ steps}] &amp;amp;= E[\mathcal{I}_0] + E[\mathcal{I}_1] + E[\mathcal{I}_2] + .....+\ E[\mathcal{I}_n] \\
+&amp;amp;= Q^0_{i, j} +\ Q^1_{i, j} +\ ...+\ Q^n_{i, j}
+\end{align}
+$$
+&lt;/p&gt;
+
+&lt;p&gt;Taking $n \to \infty$, we have
+\(E[\text{total_visits}] = Q^0_{i, j} +\ Q^1_{i, j} +\ ...+\ Q^\infty_{i, j} = [I - Q]^{-1}_{i, j} = N_{i, j}\)&lt;/p&gt;
+
+&lt;p&gt;Summing this over all the possible transient states, we get the expected number of steps the Markov chain runs for, starting at state $i$, before getting absorbed into one of the absorbing states. This is nothing but adding the entries of the $i^{th}$ row of $N_{i, j}$:&lt;/p&gt;
+
+\[t_i = \sum_j N_{i, j}\]
+
+&lt;hr /&gt;
+
+&lt;p&gt;Q1. &lt;strong&gt;On average, how many times do we have to roll a fair dice before seeing two 6’s in a row?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Solution: One can represent the state space as $S = [6, E, 66]$, with $66$ being the absorbing state.&lt;/p&gt;
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/markov_66.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;where $E = \{\phi, 1, 2, 3, 4, 5\}$. $\phi$ represents the null state $\to$ the state before we even began rolling the dice.&lt;/p&gt;
+
+&lt;p&gt;The transition matrix can be written as:&lt;/p&gt;
+
+&lt;p&gt;$$T = \begin{bmatrix} 0 &amp;amp; 5/6 &amp;amp; 1/6 \\ 1/6 &amp;amp; 5/6 &amp;amp; 0 \\ 0 &amp;amp; 0 &amp;amp; 1\end{bmatrix},$$&lt;/p&gt;
+
+&lt;p&gt;where the labels corresponds to the index as given in $S$. The fundamental matrix $N$ is given by:&lt;/p&gt;
+
+&lt;p&gt;
+$$
+\begin{align}
+N = [I - Q]^{-1} &amp;amp;= \left(\begin{bmatrix} 1 &amp;amp; 0 \\ 0 &amp;amp; 1 \end{bmatrix} - \begin{bmatrix} 0 &amp;amp; 5/6 \\ 1/6 &amp;amp; 5/6 \end{bmatrix}\right)^{-1}\\
+   &amp;amp;= \begin{bmatrix} 6 &amp;amp; 30 \\ 6 &amp;amp; 36 \end{bmatrix}
+\end{align}
+$$
+&lt;/p&gt;
+
+&lt;p&gt;Since we begin in state $\phi$ which is at index $1$ (assuming 0 indexing), the average number of dice rolls before seeing two 6’s in a row is&lt;/p&gt;
+
+\[t_1 = N_{1,0} + N_{1, 1} = 42\]
+
+&lt;hr /&gt;
+
+&lt;p&gt;Q2. &lt;strong&gt;You keep on tossing a fair coin until you see HHT or THT. Which of these combination is more likely to occur?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The trick in most of such problems is to correctly identify the relevant state space. For this problem, the state space that we can use is
+$S = [\phi, HH, HT, TH, TT, HHT, THT]$, where $HHT$ and $THT$ are the absorbing state. The transition diagram then becomes:&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/trans_diagram.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;The red arrows indicates rolling a heads on the next roll, while blue arrows indicate rolling a tails on the next turn. Given this, the transition matrix becomes:&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/transition_mat.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+&lt;!--
+$$T = \begin{bmatrix} 0 &amp; 1/4 &amp; 1/4 &amp; 1/4 &amp; 1/4 &amp; 0 &amp; 0 \\
+                      0 &amp; 1/2 &amp; 0 &amp; 0 &amp; 0 &amp; 1/2 &amp; 0 \\
+                      0 &amp; 0 &amp; 0 &amp; 1/2 &amp; 1/2 &amp; 0 &amp; 0 \\
+                      0 &amp; 1/2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1/2 \\
+                      0 &amp; 0 &amp; 0 &amp; 1/2 &amp; 1/2 &amp; 0 &amp; 0 \\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 \\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 \end{bmatrix},$$ --&gt;
+
+&lt;p&gt;where the labels corresponds to the index as given in $S$. The fundamental matrix then becomes:&lt;/p&gt;
+
+&lt;p&gt;
+$$N = [I - Q]^{-1} = \begin{bmatrix} 1 &amp;amp; 0 &amp;amp; 0  &amp;amp; 0 &amp;amp; 0 \\
+                      0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 \\
+                      0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0 &amp;amp; 0\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1 &amp;amp; 0\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1\\ \end{bmatrix},
+$$
+&lt;/p&gt;
+
+&lt;p&gt;where the $Q$ matrix is shown in green box. Following blockquote 2. the required matrix is given by:&lt;/p&gt;
+
+&lt;p&gt;$$P = NR = \begin{bmatrix} 5/8 &amp;amp; 3/8 \\ 1 &amp;amp; 0 \\ 1/2 &amp;amp; 1/2 \\ 1/2 &amp;amp; 1/2 \\1/2 &amp;amp; 1/2 \end{bmatrix},$$&lt;/p&gt;
+
+&lt;p&gt;where $R$ is the matrix shown in blue. Thus the probability of starting from $\phi$ and ending up in the $HHT$ state is $5/8$, while ending up in the $THT$ state is $3/8$.&lt;/p&gt;
+
+&lt;p&gt;Q3. &lt;strong&gt;On average, how many times must a 6-sided die be rolled until all sides appear at least once? What about for an n-sided die?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Let $n_i$ be the number of times face $i$ has shown up since we started rolling the dice. We now define an indicator variable $\mathcal{I}_i = \mathcal{I} (n_i &amp;gt; 0)$ and a random variable $X$ that is the sum of these indicator variables $\mathcal{I}_1$ to $\mathcal{I}_6$. The possible values of $X$ serves as the states of the system, i.e. $S = [1, 2, 3, 4, 5, 6]$.&lt;/p&gt;
+
+&lt;p&gt;The state $X=6$ can then be identified as the absorbing state, which happens when we see all the faces of the dice. The state diagram is given as:&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/dice_face.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;The transition matrix corresponding to this can be written as:&lt;/p&gt;
+
+&lt;p&gt;
+$$T = \begin{bmatrix}
+                      1/6 &amp;amp; 5/6 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp;0 \\
+                      0 &amp;amp; 2/6 &amp;amp; 4/6 &amp;amp; 0 &amp;amp; 0 &amp;amp;0\\
+                      0 &amp;amp; 0 &amp;amp; 3/6 &amp;amp; 3/6 &amp;amp; 0 &amp;amp;0\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 4/6 &amp;amp; 2/6 &amp;amp;0\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 5/6 &amp;amp;1/6\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 1
+\end{bmatrix},$$
+&lt;/p&gt;
+
+&lt;p&gt;where the labels corresponds to the index as given in $S$. The fundamental matrix is given by:&lt;/p&gt;
+
+&lt;p&gt;
+$$N = [I - Q]^{-1} = \begin{bmatrix}
+                      1.2 &amp;amp; 1.5 &amp;amp; 2 &amp;amp; 3 &amp;amp; 6 \\
+                      0 &amp;amp; 1.5 &amp;amp; 2 &amp;amp; 3 &amp;amp; 6\\
+                      0 &amp;amp; 0 &amp;amp; 2 &amp;amp; 3 &amp;amp; 6\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 3 &amp;amp; 6\\
+                      0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 0 &amp;amp; 6
+\end{bmatrix}$$
+&lt;/p&gt;
+
+&lt;p&gt;Since we begin in state $1$ (after one dice roll) which is at index $0$, the average number of dice rolls before seeing all sides appear is:&lt;/p&gt;
+
+\[t_{\phi} = 1 + \sum_{j} N_{0j} = 1 + (1.2 + 1.5 + 2 + 3 + 6) = 14.7\]
+
+&lt;p&gt;The $1$ in the above equation is needed since initially we start with no dice roll (state $\phi$). The above summation can be written in an interesting way:&lt;/p&gt;
+
+\[t_{\phi} = 6\left(\frac{1}{6} + \frac{1}{5} + \frac{1}{4} + \frac{1}{3} + \frac{1}{2} + 1 \right)\]
+
+&lt;p&gt;The quantity in the bracket is nothing but the $6^{th}$ &lt;a href=&quot;https://en.wikipedia.org/wiki/Harmonic_number&quot;&gt;Harmonic number&lt;/a&gt; $H_6$. Hence generalizing to arbitrary sided dice, the expected number of rolls required before seeing all the faces of the $n-sided$ dice is:&lt;/p&gt;
+
+\[t_n = n\ H_n\]
+
+&lt;!-- &lt;hr&gt; --&gt;
+</description>
+        <pubDate>Fri, 13 Dec 2019 09:23:00 -0800</pubDate>
+        <link>http://localhost:4000/statistics/absorbing-markov-chain/</link>
+        <guid isPermaLink="true">http://localhost:4000/statistics/absorbing-markov-chain/</guid>
+        
+        
+        <category>statistics</category>
+        
+      </item>
+    
+      <item>
+        <title>Logistic Regression</title>
+        <description>&lt;p&gt;One of the most common test case in supervised machine learning is that of classification:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Given a data point, classify it into one of the many labels available&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The simplest case of this is binary classification. For e.g. classifying emails as spam or ham,
+classifying objects as star or galaxy, classifying images as a cat or a dog, etc. In all these cases, to be able to apply the
+mathematical modeling of machine learning one needs to &lt;em&gt;abstract&lt;/em&gt; away some &lt;em&gt;feature(s)&lt;/em&gt; of the object. Most often choosing or engineering the right features is what gives more power to predictive modeling rather than sophisticated models.&lt;/p&gt;
+
+&lt;blockquote&gt;
+If your features are crappy, no amount of sophisticated models can come to the rescue.
+&lt;/blockquote&gt;
+
+&lt;p&gt;However, in this post we are going to assume that we already have the features in hand. Given this, there are broadly two different ways of approaching classification problems - parametric and non-parametric. The topic we are going to discuss falls in the non-parametric approaches; more specifically as a linear model. It creates a linear boundary separating objects of one class from the other given as:&lt;/p&gt;
+
+\[y = sign(x'^T w' + w_0) = x^T w, \qquad y \in \{-1, 1\}.\]
+
+&lt;p&gt;Conceptually, one can also think of the boundary as a set of points in the feature space whose probability of belonging to class $y=1$ (or $y=-1$) is half. As we move away from the boundary, on one side the probability of belonging to $y=1$ diminishes, while on the other end it approaches 1.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/log_reg_eg.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Mathematically, what we want is a &lt;em&gt;specific&lt;/em&gt; function of the perpendicular distance of any point from the boundary given by $d_\perp = x^T w$, whose value on the boundary be 0.5 and should range from 0 to 1 as we move from one side of the boundary to the other.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Given these properties, the value of this function for any point can be interpreted as its probability of belonging to class $y=1$. There are many such functions that we could choose as shown below.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/link_function.png&quot; width=&quot;600&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;The functional form used by Logistic regression is:&lt;/p&gt;
+
+\[\mathrm{Prob}[x \in (y=1)] = f(d_\perp) = \frac{e^{d_\perp}}{1 + e^{d_\perp}} = \frac{e^{x^T w}}{1 + e^{x^T w}}\]
+
+&lt;hr /&gt;
+
+&lt;p&gt;One common terminology used in this regards is that of &lt;em&gt;Odds&lt;/em&gt;. It is defined as:&lt;/p&gt;
+
+\[Odds = \frac{P(y = 1)}{P(y = -1)} = \frac{P(y = 1)}{1 - P(y = 1)}\]
+
+&lt;p&gt;The domain of Odds lies in the range $[0, \infty)$. The natural logarithm of the above quantity is called &lt;em&gt;Log Odds&lt;/em&gt; which lies in the range $(-\infty, \infty)$. This can be shown to be&lt;/p&gt;
+
+\[Log\ Odds = x^T w\]
+
+&lt;p&gt;Thus we can interpret coefficient corresponding to a given predicting variable as: &lt;strong&gt;the change in log odds for a unit change in a given variable keeping the rest variables fixed.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Our goal in now to estimate the value of the parameters of the model, $w$, from training data. However, to assess which values of the parameters are &lt;em&gt;good&lt;/em&gt;, we have to first define the likelihood. Under the assumption that each data-point is independent of every other data-point, we have:&lt;/p&gt;
+
+\[\mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\perp^i)][\mathcal{I}(y_i = -1) 1 - f(d_\perp^i)]\]
+
+&lt;p&gt;Remember, $f(d_\perp)$ gives the probability of belonging to class $y=1$. So if a data-point belongs to $y=-1$ we need to use $1 - f(d_\perp)$.&lt;/p&gt;
+
+&lt;p&gt;
+$$\begin{align} \mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) &amp;amp;= \prod_{i=1}^n \left[\mathcal{I}(y_i = 1) \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right] \left[\mathcal{I}(y_i = -1) \left(1 - \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right) \right] \\\\
+&amp;amp;= \prod_{i=1}^n \frac{e^{y_i x_i^T w}}{1 + e^{y_i x_i^T w}}\end{align}$$
+&lt;/p&gt;
+
+&lt;p&gt;Writing in terms of log-likelihood this becomes:&lt;/p&gt;
+
+&lt;p&gt;
+$$ \begin{align} \log\ \mathcal{L} &amp;amp;= \sum_{i=1}^n \log [e^{y_i x_i^T w}] - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \\\\
+&amp;amp;= \sum_{i=1}^n y_i x_i^T w - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \end{align}$$
+&lt;/p&gt;
+
+&lt;p&gt;The value of $w$ we are looking for them becomes:&lt;/p&gt;
+
+\[w_{ML} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L}\]
+
+&lt;p&gt;However, there is no analytical solution for $w$ given the form of the likelihood. That’s where &lt;a href=&quot;https://en.wikipedia.org/wiki/Gradient_descent&quot;&gt;gradient descent&lt;/a&gt; comes to the rescue. We first randomly initialize $w$ and iteratively update it till a convergence criterion is reached.&lt;/p&gt;
+
+\[w_{t+1} = w_t + \eta\ \nabla_w \log \mathcal{L},\]
+
+&lt;p&gt;where $\eta$ is the learning rate. The gradient in the above equation is easy to compute, given by:&lt;/p&gt;
+
+\[\nabla_w\ \log \mathcal{L} = \sum_i^n y_i x_i \left[\frac{1}{1 + e^{y_i x_i^T w}}\right].\]
+
+&lt;p&gt;More often that not, using the maximum likelihood prescription as above leads to estimates that have high variance. Especially in the case when one has fewer data-points than that is representative of the population, the classifier will be able to clearly separate the two classes with a linear boundary, with no misclassified points. In that case the value of $w$ will blow up. Points on either side of the boundary will be classified as belonging to their respective classes with probability of 1. This however may not generalize to new data-points and lead to a classifier with high variance. &lt;em&gt;You basically &lt;strong&gt;read&lt;/strong&gt; too much into your data, leading to overfitting.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;This can be prevented using &lt;a href=&quot;https://towardsdatascience.com/regularization-in-machine-learning-76441ddcf99a&quot;&gt;regularization&lt;/a&gt;. To keep the estimated $w$ from becoming too large, one can add a penalty term to the likelihood.&lt;/p&gt;
+
+\[w_{reg} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L} - \lambda ||w||^2 \qquad \mathrm{Ridge}\]
+
+\[w_{reg} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L} - \lambda ||w||_1 \qquad \mathrm{Lasso}\]
+
+</description>
+        <pubDate>Tue, 12 Nov 2019 09:23:00 -0800</pubDate>
+        <link>http://localhost:4000/statistics/logistic-regression/</link>
+        <guid isPermaLink="true">http://localhost:4000/statistics/logistic-regression/</guid>
+        
+        
+        <category>statistics</category>
+        
+      </item>
+    
+      <item>
+        <title>Poisson Process</title>
+        <description>&lt;p&gt;Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.&lt;/p&gt;
+
+&lt;p&gt;Now what in the world is a Poisson process. If we think $\lambda$ as the number of raindrops falling on the patch per minute, and let’s say we wait for 5 minutes; how many raindrops will we see? Well, on average we would see $5\lambda$ drops. However, we might see more or we might see less. A Poisson process is one in which this count of drops is &lt;a href=&quot;https://en.wikipedia.org/wiki/Poisson_distribution&quot;&gt;Poisson distributed&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;This discrete probability distribution is given by:&lt;/p&gt;
+
+\[P(k\ \mathrm{events\ in\ interval}\ t) = \frac{ (\lambda t)^k e^{-\lambda t}}{k!}\]
+
+&lt;!-- ![composite](/static/img/poisson.png =100x20){:class=&quot;img-responsive&quot;} --&gt;
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/poisson.png&quot; width=&quot;350&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;An interesting property about Poisson distribution is that its mean and variance are equal and they are simply $\lambda t$.&lt;/p&gt;
+
+&lt;p&gt;Now let’s say we were curious about counting the inter-arrival time between raindrops. Well if there are on average $\lambda$ drops falling per minute, the inter-arrival time on average should be $1/\lambda$. But what is the actual shape of the probability distribution of the inter-arrival times? In this case, the pdf is over a continuous domain and happens to be the &lt;a href=&quot;https://en.wikipedia.org/wiki/Exponential_distribution&quot;&gt;exponential distribution&lt;/a&gt;. It has one free parameter and you guessed it, its the same $\lambda$ parameter that we have been using till now.&lt;/p&gt;
+
+\[P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0\]
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/exponential.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;The distribution has mean $1/\lambda$ as we expected, and a variance of $1/\lambda^2$.&lt;/p&gt;
+
+&lt;p&gt;Here we can imaging a scenario. You decide to go inside to get your cup of tea. You now think how long will it take for you to see a raindrop on average once you go back outside. You calculate, on average the inter-arrival time is $1/\lambda = 6$ seconds. Given that you decide to go out randomly, it will take 3 seconds before you see the next raindrop. But is it?&lt;/p&gt;
+
+&lt;p&gt;Plotted are the arrival times(in seconds) of the first 20 drops that I simulated using $\lambda=10\ \mathrm{drops/min}$.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/drops.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;When you go out carrying your cup of tea which of the intervals(region between two drops) above are you more likely to hit. Obviously the regions with larger width. In other words, regions with larger width are oversampled. However these larger width regions also occurs less frequently (Refer fig. 2). So the probability distribution of encountering region $R$ of interval size $T$ is:&lt;/p&gt;
+
+\[P(\mathrm{Region}\ R\ \mathrm{of\ size}\ T) = \lambda^2 T\ e^{-\lambda T}\]
+
+&lt;p&gt;On expectation, the region that we are most likely to encounter has width given by:&lt;/p&gt;
+
+\[E[W] = \int_0^\infty T\ pdf(T)\ dT = \int_0^\infty T\ \lambda^2 T\ e^{-\lambda T} = \frac{2}{\lambda}\]
+
+&lt;p&gt;Since we are walking in randomly, the interval that we would observe is then half of the above value. But guess what this value is $1 / \lambda$, the expected arrival times between two raindrops, which in our case is 6 seconds and not 3 seconds are we thought before.&lt;/p&gt;
+
+&lt;p&gt;A take on this interesting phenomenon in case of bus arrival times, known as the &lt;em&gt;waiting time paradox&lt;/em&gt;; which states:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  When waiting for a bus that comes on average every 10 minutes, your average waiting time will be 10 minutes.
+&lt;/blockquote&gt;
+
+&lt;p&gt;A nice discussion on this paradox can be found in this &lt;a href=&quot;https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/&quot;&gt;post&lt;/a&gt; by Jake Vanderplas. The waiting time paradox is a specific example of the &lt;a href=&quot;https://towardsdatascience.com/the-inspection-paradox-is-everywhere-2ef1c2e9d709&quot;&gt;&lt;em&gt;inspection paradox&lt;/em&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Let’s continue on our journey of exploring distributions via raindrops. You now ask, what is the time interval between $n$ consecutive raindrops? There are $n-1$ intervals between $n$ consecutive raindrops, with each interval having a size $t$ given by the exponential distribution. So what we want is the random variable which is the sum of $k = n-1$ exponentially distributed random variables. The pdf of this random variable is the &lt;a href=&quot;https://en.wikipedia.org/wiki/Gamma_distribution&quot;&gt;Gamma distribution&lt;/a&gt;:&lt;/p&gt;
+
+\[P(x | k, \lambda) = \frac{\lambda^k\ x^{k - 1} e^{-\lambda x}}{\Gamma(k)}\]
+
+&lt;p align=&quot;center&quot;&gt;
+  &lt;img src=&quot;/static/img/gamma.png&quot; width=&quot;400&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Our exploration uncovers a key finding that the various distributions are interconnected. For more such relations refer to this &lt;a href=&quot;https://en.wikipedia.org/wiki/Relationships_among_probability_distributions&quot;&gt;link&lt;/a&gt;. What we discussed was Poisson process in the time domain, raindrops or photons hitting a telescope; one can also have Poisson processes in the spatial domain. Its easier to visualize this in 2D, and we can take an example of trees growing in a forest. Analogous to the time domain discussion above, we have a rate parameter $\lambda$ which is &lt;em&gt;number of trees per unit area&lt;/em&gt;. If we take a square of area A, move it across the forest, each time counting the number of trees that fall in the square, the count is going to be a random variable which, the same as before, is going to be Poisson distributed:&lt;/p&gt;
+
+\[P(k\ \mathrm{trees\ in\ area}\ A) = \frac{ (\lambda A)^k e^{-\lambda A}}{k!}\]
+
+</description>
+        <pubDate>Sat, 28 Sep 2019 10:23:00 -0700</pubDate>
+        <link>http://localhost:4000/statistics/poisson-process/</link>
+        <guid isPermaLink="true">http://localhost:4000/statistics/poisson-process/</guid>
+        
+        
+        <category>statistics</category>
+        
+      </item>
+    
+      <item>
+        <title>PDF of a dependent variable</title>
+        <description>&lt;blockquote&gt;
+    ``The Calculus required continuity, and continuity was supposed to require the infinitely little; but nobody could discover what the infinitely little might be.&quot;
+    &lt;p&gt; &amp;emsp;&amp;emsp;&amp;emsp;&amp;emsp; -- Bertrand Russell in Mysticism and Logic and Other Essays, The Floating Press, 1 August 2010, p.100&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Many-a-time when working with model fitting to data, one encounters a
+situation where one need to find the probability distribution of a random
+variable, which itself is a function of another random variable.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Given that $x$ has a probability distribution $pdf_X(x)$, and that the variable $y$ is related to $x$ as $y = f(x)$, what is the probability distribution function of $y$?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Naively, one might think for a given value $y’$, one can just &lt;em&gt;pick up&lt;/em&gt; its
+probability as $f_X(x’)$, where $y’ = f(x’)$. This is correct when $x$ is a discrete random variable and we are talking about probability mass function. However, when $x$ is a continuous random variable, this approach gives &lt;em&gt;wrong&lt;/em&gt; results. For the continuous case, the probability of a single point has no meaning. Rather, it is the probability of finding something in a &lt;em&gt;given interval&lt;/em&gt; that is conserved across transformations. Making the interval become infinitesimal, we can approximate the area under the curve by a rectangle as shown in the figure. This area (mass) is the same when we transform to the variable $y$. In other words the following equality holds:&lt;/p&gt;
+
+\[\mathrm{pdf}_X(x)\ dx = \mathrm{pdf}_Y(y)\ dy, \qquad ......dy = f'(x)\ dx\]
+
+&lt;p class=&quot;mycenter&quot;&gt;&lt;img src=&quot;/static/img/xkcd.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;style&gt;
+.mycenter {
+    text-align:center;
+    display: block;
+    margin: 0 auto;
+}
+&lt;/style&gt;
+
+&lt;p&gt;Let’s look at a few examples:&lt;/p&gt;
+
+&lt;p&gt;1.
+    LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have &lt;a href=&quot;https://en.wikipedia.org/wiki/Log-normal_distribution&quot;&gt;lognormal distribution&lt;/a&gt;. Let’s find its pdf using the above relation.&lt;/p&gt;
+
+\[g_Y(y) = f_X(x) \frac{dx}{dy} = \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\displaystyle \frac{(x -\mu)^2}{2 \sigma^2}} \left(\frac{1}{y}\right) =  \frac{1}{\sqrt{2 \pi  \sigma^2}y} e^{-\displaystyle \frac{(\ln y -\mu)^2}{2 \sigma^2}}\]
+
+&lt;p&gt;&lt;img src=&quot;/static/img/pdf-of-function.png&quot; alt=&quot;composite&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;2.
+ Flux transmission:
+The flux field we observe from the absorption of Lyman-alpha photons by neutral Hydrogen in the intergalactic medium is related to the density field which is Gaussian in nature through the relation:&lt;/p&gt;
+
+\[F(\mathbf{x}) = \exp \left[-A \exp \left(\beta \left[\delta_g(\mathbf{x}) - \frac{\sigma_g^2}{2} \right] \right) \right]\]
+
+&lt;p&gt;The dependence of flux on density is thus highly non-linear. However, at earlier times when the variance on $\delta$ was small, the flux was roughly Gaussian distributed too. To find the exact pdf, we start by noting that:&lt;/p&gt;
+
+\[\frac{dF}{d\delta_g} = \beta\ F \ln F\]
+
+&lt;p&gt;Thus we have,&lt;/p&gt;
+
+\[p(F) = -\frac{p(\delta_g)}{\beta\ F\ ln F},\]
+
+&lt;p&gt;where $\delta_g$ for a given $F$ can be calculated from the first equation. We need a negative sign cause $F$ is a monotonically decreasing function of $\delta_g$.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 07 Apr 2019 10:18:23 -0700</pubDate>
+        <link>http://localhost:4000/statistics/pdf-of-function/</link>
+        <guid isPermaLink="true">http://localhost:4000/statistics/pdf-of-function/</guid>
+        
+        
+        <category>statistics</category>
+        
+      </item>
+    
+  </channel>
+</rss>

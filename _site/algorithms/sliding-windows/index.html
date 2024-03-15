@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!--
+    So Simple Jekyll Theme 3.2.0
+    Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+    Free for personal and commercial use under the MIT license
+    https://github.com/mmistakes/so-simple-theme/blob/master/LICENSE
+-->
+<html lang="en-US" class="no-js">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Arrays | Stochastic Entity</title>
+<meta name="generator" content="Jekyll v4.3.3" />
+<meta property="og:title" content="Arrays" />
+<meta name="author" content="Vikrant Kamble" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="One of the most basic things that one can do with an array is to have a pointer or a set of pointers that traverse the array in some fashion. The number of pointers to book-keep depends on the question at hand. Let’s look at few sample problems to understand this concept:" />
+<meta property="og:description" content="One of the most basic things that one can do with an array is to have a pointer or a set of pointers that traverse the array in some fashion. The number of pointers to book-keep depends on the question at hand. Let’s look at few sample problems to understand this concept:" />
+<link rel="canonical" href="http://localhost:4000/algorithms/sliding-windows/" />
+<meta property="og:url" content="http://localhost:4000/algorithms/sliding-windows/" />
+<meta property="og:site_name" content="Stochastic Entity" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-03-07T16:00:00-08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Arrays" />
+<meta name="twitter:site" content="@" />
+<meta name="twitter:creator" content="@Vikrant Kamble" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Vikrant Kamble"},"dateModified":"2024-03-07T16:00:00-08:00","datePublished":"2024-03-07T16:00:00-08:00","description":"One of the most basic things that one can do with an array is to have a pointer or a set of pointers that traverse the array in some fashion. The number of pointers to book-keep depends on the question at hand. Let’s look at few sample problems to understand this concept:","headline":"Arrays","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/algorithms/sliding-windows/"},"url":"http://localhost:4000/algorithms/sliding-windows/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://use.typekit.net/eio0pzn.css">
+
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/skins/default.css">
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,700,700i|Lora:400,400i,700,700i">
+  <link rel="alternate" type="application/atom+xml" title="Stochastic Entity" href="/atom.xml">
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+</head>
+
+
+  <body class="layout--post  arrays">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="/posts">Home</a></li><li><a href="/categories/">Categories</a></li><li><a href="/tags/">Tags</a></li><li><a href="/search/">Search</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+    
+    
+      
+        <div class="site-title animated fadeIn"><a href="/">Stochastic Entity</a></div>
+      
+      <p class="site-description animated fadeIn" itemprop="description">Personal blog for ideas and docs.</p>
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">Arrays
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><img src="/images/headshot_compressed.jpg" class="author-avatar u-photo" alt="Vikrant Kamble"><div class="author-info"><div class="author-name">
+        <em>by</em> <span class="p-name">Vikrant Kamble</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://instagram.com/vikrant10622"><i class="fab fa-instagram fa-lg" title="Instagram"></i></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-lg" title="GitHub"></i></a>
+          </li></ul>
+    <time class="page-date dt-published" datetime="2024-03-07T16:00:00-08:00"><a class="u-url" href="">March 7, 2024</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy">algorithms</li>
+  </ul>
+
+
+        
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p>One of the most basic things that one can do with an array is to have a pointer or a set of pointers that
+traverse the array in some fashion. The number of pointers to <em>book-keep</em> depends on the question at hand.
+Let’s look at few sample problems to understand this concept:</p>
+
+<ul>
+  <li>Given an array <em>nums</em> compute the largest element.</li>
+</ul>
+
+<p>To find the largest element, we have to <em>at-least</em> visit each element in the array. Thus we need 
+a <strong>single</strong> pointer to traverse the array. We will reserve a constant memory space that holds the value
+of the largest element or at least the index of the position that holds the largest element.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_largest</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">largest_num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="n">largest_num</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">largest_num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">largest_num</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span> <span class="k">else</span> <span class="n">largest_num</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Given an array <em>nums</em> and a <em>target</em> check if target exists in the array.</li>
+</ul>
+
+<p>Since we are not given any extra information as to the structure of the array, e.g. sorted or not, 
+we should write a solution for the generic case. Similar to the previous case, we <em>need</em> a pointer that 
+scans through the array and at each step check for equality of the element with the target. This gives 
+us $O(n)$ time complexity and $O(1)$ space complexity algorithm as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">find_target</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Given a <strong>sorted</strong> array <em>nums</em> and a <em>target</em> check if there exists $(i, j)$ such that $nums[i] + nums[j] = target$ and $i \ne j$.</li>
+</ul>
+
+<p>Since we need to find two elements from the array that sum to the target, we should probably use two pointers. But the questions is where 
+should they be placed <em>initially</em>. Ideally we would like to, on each iteration, <em>update</em> one or both the pointers and the updates should be such 
+that we <em>march</em> towards the <em>breaking</em> or <em>end-of-iteration</em> criteria. In this case, we should place one pointer at the beginning and the 
+other at the end. We will call them <em>left</em> and <em>right</em> respectively. If the sum of the elements at these positions is <em>greater</em> than the target, 
+then the only way to bring down the sum is to decrease the <em>right</em> pointer. Conversly, if the sum is <em>smaller</em> than the target, the only 
+way to increase the sum is to update the <em>left</em> pointer. Note that the we can make the above two statements only in this specific case of 
+sorted array. If they sum to the target, we have found the pair and simply exit the iteration.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">two_sum_sorted</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">left</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">:</span>
+        <span class="n">curr_sum</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">left</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">right</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">curr_sum</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">curr_sum</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<p><img src="/images/container_most_water.png" alt="" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">most_water_container</span><span class="p">(</span><span class="n">heights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">max_water_content</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span>
+
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">left</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">:</span>
+        <span class="c1"># Water content = width * (bar with the lower height of the two)
+</span>        <span class="n">water_content</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">heights</span><span class="p">[</span><span class="n">left</span><span class="p">],</span> <span class="n">heights</span><span class="p">[</span><span class="n">right</span><span class="p">])</span>
+        <span class="n">max_water_content</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_water_content</span><span class="p">,</span> <span class="n">water_content</span><span class="p">)</span>
+
+        <span class="c1"># Which pointer to update? We will be making the width smaller with
+</span>        <span class="c1"># the next pointer update, so the only hope for increasing the water content
+</span>        <span class="c1"># is to increse the minimum height. Hence we should update the pointer
+</span>        <span class="c1"># of the bar with the lower height of the two.
+</span>        <span class="k">if</span> <span class="n">heights</span><span class="p">[</span><span class="n">left</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">heights</span><span class="p">[</span><span class="n">right</span><span class="p">]:</span>
+            <span class="n">left</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">max_water_content</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">subarray_less_than_target</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">leader</span><span class="p">,</span> <span class="n">follower</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+    <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">leader</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+        <span class="c1"># We keep on increasing the `leading` pointer until we 
+</span>        <span class="c1"># reach the end of the input or until we reach an element which
+</span>        <span class="c1"># is not smaller than the target.
+</span>        <span class="k">while</span> <span class="p">(</span><span class="n">leader</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">leader</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">target</span><span class="p">):</span>
+            <span class="n">leader</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Once we break out of the above while loop, we have reached 
+</span>        <span class="c1"># a new subarray (followe:leader) where all the elements are less than target.
+</span>        <span class="n">curr_length</span> <span class="o">=</span> <span class="n">leader</span> <span class="o">-</span> <span class="n">follower</span>
+        <span class="k">if</span> <span class="n">curr_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">total_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># We then repeat the process from the next element.
+</span>        <span class="n">leader</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">follower</span> <span class="o">=</span> <span class="n">leader</span>
+    <span class="k">return</span> <span class="n">total_count</span>
+</code></pre></div></div>
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Falgorithms%2Fsliding-windows%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--facebook btn--small"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Arrays%20http%3A%2F%2Flocalhost%3A4000%2Falgorithms%2Fsliding-windows%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--twitter btn--small"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Falgorithms%2Fsliding-windows%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--linkedin btn--small"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=Arrays&url=http%3A%2F%2Flocalhost%3A4000%2Falgorithms%2Fsliding-windows%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--reddit btn--small"><i class="fab fa-fw fa-reddit" aria-hidden="true"></i> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="/statistics/combinatorics/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <i class="fas fa-arrow-left"></i> Combinatorics, Tail sum for expectation and Simplices
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="/ml/bert_movie_reviews/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        IMDB movie reviews
+ <i class="fas fa-arrow-right"></i>
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://github.com/VikrantKamble"><i class="fab fa-github-square fa-2x" title="GitHub"></i></a></div><div class="copyright">
+    
+      <p>&copy; 2024 Stochastic Entity. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/mmistakes/so-simple-theme" rel="nofollow">So Simple</a>.</p>
+    
+  </div>
+</footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"></script>
+
+<!-- for mathjax support --><script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$', '$'] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      messageStyle: "none",
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+    });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+  </body>
+
+</html>

@@ -1,0 +1,1019 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-03-15T12:36:54-07:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Stochastic Entity</title><subtitle>Personal blog for ideas and docs.</subtitle><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><entry><title type="html">ML Design</title><link href="http://localhost:4000/ml/ml-design/" rel="alternate" type="text/html" title="ML Design" /><published>2024-03-09T16:00:00-08:00</published><updated>2024-03-09T16:00:00-08:00</updated><id>http://localhost:4000/ml/ml-design</id><content type="html" xml:base="http://localhost:4000/ml/ml-design/"><![CDATA[<p>A ML design task can broadly be classified into the following components, in order of priority:</p>
+<ul>
+  <li>Defining <em>success</em> metrics</li>
+  <li>Data pipelines</li>
+  <li>Backend model design</li>
+  <li>Online model design</li>
+  <li>Model evaluation</li>
+  <li>Model monitoring</li>
+  <li>Serving</li>
+</ul>
+
+<h1 id="defining-success-metrics">Defining <em>success</em> metrics</h1>
+
+<p>The most important aspect when building a ML system for a specific task is to be able to identify the <em>sucess</em> criteria. For example, for a recommendation system, this could be user click-rate or engagement, while for a predictive system, this could be as simple as mean abosolute error.</p>
+
+<h1 id="data-pipelines">Data pipelines</h1>
+
+<p>These essentially define how data for training or inference is flowing in, how it is ingested, what pipelines are setup for ETL. At this stage, we also need to think about the refresh rate, how the data is stored, what’s an optimal way to fetch the data, etc. For example for training a recommendation system, one might need past click data, plus user data; each of which can be stored separtely and have their associated pipelines for data cleaning and normalization.</p>
+
+<h1 id="backend-model-design">Backend model design</h1>
+
+<p>If the task at hand involves user engagement and personalization, then the ML task can be broken into two component - a <strong>backend</strong> model component that operates at a lower refresh rate (high latency) and an <strong>online</strong> model component that needs to have a small latency. This latency requirements impose the model architechtures that can be used. For example, for online task, a small light-weight model would be the right choice. The backend model usually will process data in batch, i.e. for thousands of users at a time. It is always useful to have a simple model that can be treated as a baseline against which to measure any other complex model.</p>
+
+<h1 id="online-model-design">Online model design</h1>
+
+<p>The online model only needs to process a single item <code class="language-plaintext highlighter-rouge">batch_size=1</code> at a time. At the start of each <strong>session</strong> the current state is simply the output of the last run of the <strong>backend model</strong> $A^{[l-1]}$. Each interaction can be thought of as a new datapoint token $x^{[l]}$. The job of the online model is to then compute the new state given the previous state and the new data point in some fashion. In the simplest case, this could just be a linear model: $A^{[l]} = W (A^{[l-1]}, x^{[l]})$. The interaction data-point is backed up into a database or an object store of some kind to be able to provide users history of their interactions.</p>
+
+<h1 id="model-evaluation">Model evaluation</h1>
+
+<h1 id="serving">Serving</h1>
+
+<h1 id="model-monitoring">Model monitoring</h1>
+
+<p>Model deteriorate over time, either due to covariate shifts or biases. It is therefore important to track relevant monitoring metrics. This allows us to identify when a if either a re-training needs to be done or if the model architechture as a whole needs to be updated.</p>]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="ML" /><summary type="html"><![CDATA[A ML design task can broadly be classified into the following components, in order of priority: Defining success metrics Data pipelines Backend model design Online model design Model evaluation Model monitoring Serving]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/images/ml_logo.jpg" /><media:content medium="image" url="http://localhost:4000/images/ml_logo.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">IMDB movie reviews</title><link href="http://localhost:4000/ml/bert_movie_reviews/" rel="alternate" type="text/html" title="IMDB movie reviews" /><published>2024-03-07T16:00:00-08:00</published><updated>2024-03-07T16:00:00-08:00</updated><id>http://localhost:4000/ml/bert_movie_reviews</id><content type="html" xml:base="http://localhost:4000/ml/bert_movie_reviews/"><![CDATA[<p>The goal of this notebook is to understand some details about Huggingface’s <em>dataset</em> and <em>transformer</em> libraries and also as a reference point for fine-tuning a LLM model for a classification task.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="n">transformers</span> <span class="n">datasets</span>
+
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m510.5/510.5 kB[0m [31m7.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m116.3/116.3 kB[0m [31m8.8 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m134.8/134.8 kB[0m [31m13.1 MB/s[0m eta [36m0:00:00[0m
+[?25h
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For NN development, we will be using Pytorch-Lightning package
+</span><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">lightning</span> <span class="o">--</span><span class="n">quiet</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m2.1/2.1 MB[0m [31m7.9 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m840.4/840.4 kB[0m [31m8.7 MB/s[0m eta [36m0:00:00[0m
+[2K     [90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m [32m800.9/800.9 kB[0m [31m9.8 MB/s[0m eta [36m0:00:00[0m
+[?25h
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">lightning</span> <span class="k">as</span> <span class="n">L</span>
+
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">datasets</span> <span class="kn">import</span> <span class="n">load_dataset</span><span class="p">,</span> <span class="n">load_dataset_builder</span><span class="p">,</span> <span class="n">get_dataset_split_names</span>
+<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoModel</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span><span class="p">,</span> <span class="n">optim</span>
+<span class="kn">from</span> <span class="nn">torchmetrics.classification</span> <span class="kn">import</span> <span class="n">BinaryAccuracy</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Setting up the device for GPU usage
+</span><span class="n">device</span> <span class="o">=</span> <span class="s">'cuda'</span> <span class="k">if</span> <span class="n">torch</span><span class="p">.</span><span class="n">cuda</span><span class="p">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s">'cpu'</span>
+<span class="k">print</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cuda
+</code></pre></div></div>
+
+<h2 id="data">Data</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Inspect the dataset
+</span><span class="n">ds_builder</span> <span class="o">=</span> <span class="n">load_dataset_builder</span><span class="p">(</span><span class="s">"imdb"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ds_builder</span><span class="p">.</span><span class="n">info</span><span class="p">.</span><span class="n">description</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ds_builder</span><span class="p">.</span><span class="n">info</span><span class="p">.</span><span class="n">features</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/local/lib/python3.10/dist-packages/huggingface_hub/utils/_token.py:88: UserWarning: 
+The secret `HF_TOKEN` does not exist in your Colab secrets.
+To authenticate with the Hugging Face Hub, create a token in your settings tab (https://huggingface.co/settings/tokens), set it as secret in your Google Colab and restart your session.
+You will be able to reuse this secret in all of your notebooks.
+Please note that authentication is recommended but still optional to access public models or datasets.
+  warnings.warn(
+
+
+
+Downloading readme:   0%|          | 0.00/7.81k [00:00&lt;?, ?B/s]
+
+
+
+{'text': Value(dtype='string', id=None), 'label': ClassLabel(names=['neg', 'pos'], id=None)}
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's inspect the splits
+</span><span class="n">get_dataset_split_names</span><span class="p">(</span><span class="s">"imdb"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>['train', 'test', 'unsupervised']
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Now let's load the train and the test dataset splits
+</span><span class="n">dataset_train</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">"imdb"</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s">"train"</span><span class="p">)</span>
+<span class="n">dataset_test</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">"imdb"</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Downloading data:   0%|          | 0.00/21.0M [00:00&lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/20.5M [00:00&lt;?, ?B/s]
+
+
+
+Downloading data:   0%|          | 0.00/42.0M [00:00&lt;?, ?B/s]
+
+
+
+Generating train split:   0%|          | 0/25000 [00:00&lt;?, ? examples/s]
+
+
+
+Generating test split:   0%|          | 0/25000 [00:00&lt;?, ? examples/s]
+
+
+
+Generating unsupervised split:   0%|          | 0/50000 [00:00&lt;?, ? examples/s]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's now define some key variables
+</span><span class="n">TRAIN_SAMPLE_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">TEST_SAMPLE_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">TRAIN_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">TEST_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="n">MAX_LEN</span> <span class="o">=</span> <span class="mi">200</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For the sake of this tutorial I will subsample to a size of 1000
+</span><span class="n">train_indices</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_train</span><span class="p">),</span>
+                                 <span class="n">size</span><span class="o">=</span><span class="n">TRAIN_SAMPLE_SIZE</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">data_train</span> <span class="o">=</span> <span class="n">dataset_train</span><span class="p">.</span><span class="n">select</span><span class="p">(</span><span class="n">train_indices</span><span class="p">)</span>
+
+<span class="n">test_indices</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_test</span><span class="p">),</span>
+                                <span class="n">size</span><span class="o">=</span><span class="n">TEST_SAMPLE_SIZE</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">dataset_test</span><span class="p">.</span><span class="n">select</span><span class="p">(</span><span class="n">test_indices</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's make sure we have good distribution of class labels
+</span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="n">Counter</span><span class="p">(</span><span class="n">data_train</span><span class="p">[</span><span class="s">'label'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Counter({0: 513, 1: 487})
+</code></pre></div></div>
+
+<h2 id="toknenization">Toknenization</h2>
+
+<p>We can now start to <em>tokenize</em> the input data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">AutoModel</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="p">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s">"bert-base-uncased"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tokenizer_config.json:   0%|          | 0.00/48.0 [00:00&lt;?, ?B/s]
+
+
+
+config.json:   0%|          | 0.00/570 [00:00&lt;?, ?B/s]
+
+
+
+vocab.txt:   0%|          | 0.00/232k [00:00&lt;?, ?B/s]
+
+
+
+tokenizer.json:   0%|          | 0.00/466k [00:00&lt;?, ?B/s]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># We apply the BERT tokenizer with a max_len of 200 and padding or truncating
+# text if needed. Since each `review` is a single entity, we don't require the
+# token_type_ids which should all be just 0's.
+</span><span class="k">def</span> <span class="nf">tokenization</span><span class="p">(</span><span class="n">datarow</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">datarow</span><span class="p">[</span><span class="s">"text"</span><span class="p">],</span> <span class="n">max_length</span><span class="o">=</span><span class="n">MAX_LEN</span><span class="p">,</span>
+                   <span class="n">return_token_type_ids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">'max_length'</span><span class="p">,</span>
+                   <span class="n">truncation</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># As per this (https://huggingface.co/docs/datasets/en/use_dataset),
+# this is a good way to apply tokenization to the entire dataset.
+</span><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">tokenization</span><span class="p">,</span> <span class="n">batched</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">tokenization</span><span class="p">,</span> <span class="n">batched</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Map:   0%|          | 0/1000 [00:00&lt;?, ? examples/s]
+
+
+
+Map:   0%|          | 0/1000 [00:00&lt;?, ? examples/s]
+</code></pre></div></div>
+
+<p>The dataset returns lists in the output. However, we would like to use it in Pytorch and want it to return <code class="language-plaintext highlighter-rouge">tensors</code> instead. To do this, we will set its
+format as described <a href="https://huggingface.co/docs/datasets/en/use_with_pytorch">here</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="n">with_format</span><span class="p">(</span><span class="s">"torch"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="n">with_format</span><span class="p">(</span><span class="s">"torch"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Remove unwanted column 'text' since we have already tokenized it.
+</span><span class="n">data_train</span> <span class="o">=</span> <span class="n">data_train</span><span class="p">.</span><span class="n">remove_columns</span><span class="p">(</span><span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s">"text"</span><span class="p">])</span>
+<span class="n">data_test</span> <span class="o">=</span> <span class="n">data_test</span><span class="p">.</span><span class="n">remove_columns</span><span class="p">(</span><span class="n">column_names</span><span class="o">=</span><span class="p">[</span><span class="s">"text"</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>We can pass these Huggingface dataset directly to the Torch Dataloaders.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"batch_size"</span><span class="p">:</span> <span class="n">TRAIN_BATCH_SIZE</span><span class="p">,</span>
+    <span class="s">"shuffle"</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">test_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"batch_size"</span><span class="p">:</span> <span class="n">TEST_BATCH_SIZE</span><span class="p">,</span>
+    <span class="s">"shuffle"</span><span class="p">:</span> <span class="bp">False</span>
+<span class="p">}</span>
+
+<span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_train</span><span class="p">,</span> <span class="o">**</span><span class="n">train_params</span><span class="p">)</span>
+<span class="n">test_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_test</span><span class="p">,</span> <span class="o">**</span><span class="n">test_params</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="model">Model</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">FineTuneBert</span><span class="p">(</span><span class="n">L</span><span class="p">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bert_backbone</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">bert_backbone</span> <span class="o">=</span> <span class="n">bert_backbone</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="c1"># In the loss function, there are multiple ways we can go:
+</span>        <span class="c1"># 1. Use CrossEntropyLoss, in which case the out_features = 2
+</span>        <span class="c1"># 2. Use BCELoss, in which case the out_features = 1, but we need an additional
+</span>        <span class="c1">#    sigmoid layer at the end.
+</span>        <span class="c1"># 3. BCEWithLogitsLoss, in which case the out_features = 1, but we do not need
+</span>        <span class="c1">#    an additional sigmoid layer - WE WILL BE USING THIS.
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">):</span>
+        <span class="c1"># pass the inputs through the backbone
+</span>        <span class="c1"># The output of BERT is last_hidden_state and pooler_output. Here we are
+</span>        <span class="c1"># concerned about the latter.
+</span>        <span class="n">_</span><span class="p">,</span> <span class="n">bert_output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">bert_backbone</span><span class="p">(</span><span class="n">input_ids</span><span class="o">=</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">bert_output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="p">.</span><span class="n">AdamW</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">optimizer</span>
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">label</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'label'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'input_ids'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'attention_mask'</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">forward</span><span class="p">(</span><span class="n">input_ids</span><span class="o">=</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">functional</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">.</span><span class="nb">float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">label</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'label'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'input_ids'</span><span class="p">],</span>
+            <span class="n">batch</span><span class="p">[</span><span class="s">'attention_mask'</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">test_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">functional</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">.</span><span class="nb">float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">"test_loss"</span><span class="p">,</span> <span class="n">test_loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c1"># Compute accuracy
+</span>        <span class="n">acc_metric</span> <span class="o">=</span> <span class="n">BinaryAccuracy</span><span class="p">().</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="s">"test_acc"</span><span class="p">,</span> <span class="n">acc_metric</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span> <span class="n">on_epoch</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bert</span> <span class="o">=</span> <span class="n">AutoModel</span><span class="p">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s">"bert-base-uncased"</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">FineTuneBert</span><span class="p">(</span><span class="n">bert_backbone</span><span class="o">=</span><span class="n">bert</span><span class="p">)</span>
+<span class="n">model</span><span class="p">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>FineTuneBert(
+  (bert_backbone): BertModel(
+    (embeddings): BertEmbeddings(
+      (word_embeddings): Embedding(30522, 768, padding_idx=0)
+      (position_embeddings): Embedding(512, 768)
+      (token_type_embeddings): Embedding(2, 768)
+      (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+    (encoder): BertEncoder(
+      (layer): ModuleList(
+        (0-11): 12 x BertLayer(
+          (attention): BertAttention(
+            (self): BertSelfAttention(
+              (query): Linear(in_features=768, out_features=768, bias=True)
+              (key): Linear(in_features=768, out_features=768, bias=True)
+              (value): Linear(in_features=768, out_features=768, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+            (output): BertSelfOutput(
+              (dense): Linear(in_features=768, out_features=768, bias=True)
+              (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+          (intermediate): BertIntermediate(
+            (dense): Linear(in_features=768, out_features=3072, bias=True)
+            (intermediate_act_fn): GELUActivation()
+          )
+          (output): BertOutput(
+            (dense): Linear(in_features=3072, out_features=768, bias=True)
+            (LayerNorm): LayerNorm((768,), eps=1e-12, elementwise_affine=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+    (pooler): BertPooler(
+      (dense): Linear(in_features=768, out_features=768, bias=True)
+      (activation): Tanh()
+    )
+  )
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc1): Linear(in_features=768, out_features=1, bias=True)
+)
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trainer</span> <span class="o">=</span> <span class="n">L</span><span class="p">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">max_epochs</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">trainer</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataloaders</span><span class="o">=</span><span class="n">train_dataloader</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO: GPU available: True (cuda), used: True
+INFO:lightning.pytorch.utilities.rank_zero:GPU available: True (cuda), used: True
+INFO: TPU available: False, using: 0 TPU cores
+INFO:lightning.pytorch.utilities.rank_zero:TPU available: False, using: 0 TPU cores
+INFO: IPU available: False, using: 0 IPUs
+INFO:lightning.pytorch.utilities.rank_zero:IPU available: False, using: 0 IPUs
+INFO: HPU available: False, using: 0 HPUs
+INFO:lightning.pytorch.utilities.rank_zero:HPU available: False, using: 0 HPUs
+INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO: 
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+INFO:lightning.pytorch.callbacks.model_summary:
+  | Name          | Type      | Params
+--------------------------------------------
+0 | bert_backbone | BertModel | 109 M 
+1 | dropout       | Dropout   | 0     
+2 | fc1           | Linear    | 769   
+--------------------------------------------
+109 M     Trainable params
+0         Non-trainable params
+109 M     Total params
+437.932   Total estimated model params size (MB)
+
+
+
+Training: |          | 0/? [00:00&lt;?, ?it/s]
+
+
+INFO: `Trainer.fit` stopped: `max_epochs=5` reached.
+INFO:lightning.pytorch.utilities.rank_zero:`Trainer.fit` stopped: `max_epochs=5` reached.
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trainer</span><span class="p">.</span><span class="n">test</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">dataloaders</span><span class="o">=</span><span class="n">test_dataloader</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO: LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+INFO:lightning.pytorch.accelerators.cuda:LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+
+
+Testing: |          | 0/? [00:00&lt;?, ?it/s]
+</code></pre></div></div>
+
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃<span style="font-weight: bold">        Test metric        </span>┃<span style="font-weight: bold">       DataLoader 0        </span>┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│<span style="color: #008080; text-decoration-color: #008080">         test_acc          </span>│<span style="color: #800080; text-decoration-color: #800080">    0.8849999904632568     </span>│
+│<span style="color: #008080; text-decoration-color: #008080">         test_loss         </span>│<span style="color: #800080; text-decoration-color: #800080">    0.39432957768440247    </span>│
+└───────────────────────────┴───────────────────────────┘
+</pre>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[{'test_loss': 0.39432957768440247, 'test_acc': 0.8849999904632568}]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="ML" /><summary type="html"><![CDATA[The goal of this notebook is to understand some details about Huggingface’s dataset and transformer libraries and also as a reference point for fine-tuning a LLM model for a classification task.]]></summary></entry><entry><title type="html">Arrays</title><link href="http://localhost:4000/algorithms/sliding-windows/" rel="alternate" type="text/html" title="Arrays" /><published>2024-03-07T16:00:00-08:00</published><updated>2024-03-07T16:00:00-08:00</updated><id>http://localhost:4000/algorithms/sliding-windows</id><content type="html" xml:base="http://localhost:4000/algorithms/sliding-windows/"><![CDATA[<p>One of the most basic things that one can do with an array is to have a pointer or a set of pointers that
+traverse the array in some fashion. The number of pointers to <em>book-keep</em> depends on the question at hand.
+Let’s look at few sample problems to understand this concept:</p>
+
+<ul>
+  <li>Given an array <em>nums</em> compute the largest element.</li>
+</ul>
+
+<p>To find the largest element, we have to <em>at-least</em> visit each element in the array. Thus we need 
+a <strong>single</strong> pointer to traverse the array. We will reserve a constant memory space that holds the value
+of the largest element or at least the index of the position that holds the largest element.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_largest</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">largest_num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="n">largest_num</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">largest_num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">largest_num</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span> <span class="k">else</span> <span class="n">largest_num</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Given an array <em>nums</em> and a <em>target</em> check if target exists in the array.</li>
+</ul>
+
+<p>Since we are not given any extra information as to the structure of the array, e.g. sorted or not, 
+we should write a solution for the generic case. Similar to the previous case, we <em>need</em> a pointer that 
+scans through the array and at each step check for equality of the element with the target. This gives 
+us $O(n)$ time complexity and $O(1)$ space complexity algorithm as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">find_target</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Given a <strong>sorted</strong> array <em>nums</em> and a <em>target</em> check if there exists $(i, j)$ such that $nums[i] + nums[j] = target$ and $i \ne j$.</li>
+</ul>
+
+<p>Since we need to find two elements from the array that sum to the target, we should probably use two pointers. But the questions is where 
+should they be placed <em>initially</em>. Ideally we would like to, on each iteration, <em>update</em> one or both the pointers and the updates should be such 
+that we <em>march</em> towards the <em>breaking</em> or <em>end-of-iteration</em> criteria. In this case, we should place one pointer at the beginning and the 
+other at the end. We will call them <em>left</em> and <em>right</em> respectively. If the sum of the elements at these positions is <em>greater</em> than the target, 
+then the only way to bring down the sum is to decrease the <em>right</em> pointer. Conversly, if the sum is <em>smaller</em> than the target, the only 
+way to increase the sum is to update the <em>left</em> pointer. Note that the we can make the above two statements only in this specific case of 
+sorted array. If they sum to the target, we have found the pair and simply exit the iteration.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">two_sum_sorted</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">left</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">:</span>
+        <span class="n">curr_sum</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">left</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span><span class="p">[</span><span class="n">right</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">curr_sum</span> <span class="o">==</span> <span class="n">target</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">curr_sum</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div>
+
+<p><img src="/images/container_most_water.png" alt="" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">most_water_container</span><span class="p">(</span><span class="n">heights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">max_water_content</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">'-inf'</span><span class="p">)</span>
+
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">left</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">:</span>
+        <span class="c1"># Water content = width * (bar with the lower height of the two)
+</span>        <span class="n">water_content</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">heights</span><span class="p">[</span><span class="n">left</span><span class="p">],</span> <span class="n">heights</span><span class="p">[</span><span class="n">right</span><span class="p">])</span>
+        <span class="n">max_water_content</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_water_content</span><span class="p">,</span> <span class="n">water_content</span><span class="p">)</span>
+
+        <span class="c1"># Which pointer to update? We will be making the width smaller with
+</span>        <span class="c1"># the next pointer update, so the only hope for increasing the water content
+</span>        <span class="c1"># is to increse the minimum height. Hence we should update the pointer
+</span>        <span class="c1"># of the bar with the lower height of the two.
+</span>        <span class="k">if</span> <span class="n">heights</span><span class="p">[</span><span class="n">left</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">heights</span><span class="p">[</span><span class="n">right</span><span class="p">]:</span>
+            <span class="n">left</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">max_water_content</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">subarray_less_than_target</span><span class="p">(</span><span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">leader</span><span class="p">,</span> <span class="n">follower</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+    <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">leader</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">):</span>
+        <span class="c1"># We keep on increasing the `leading` pointer until we 
+</span>        <span class="c1"># reach the end of the input or until we reach an element which
+</span>        <span class="c1"># is not smaller than the target.
+</span>        <span class="k">while</span> <span class="p">(</span><span class="n">leader</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">leader</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">target</span><span class="p">):</span>
+            <span class="n">leader</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Once we break out of the above while loop, we have reached 
+</span>        <span class="c1"># a new subarray (followe:leader) where all the elements are less than target.
+</span>        <span class="n">curr_length</span> <span class="o">=</span> <span class="n">leader</span> <span class="o">-</span> <span class="n">follower</span>
+        <span class="k">if</span> <span class="n">curr_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">total_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># We then repeat the process from the next element.
+</span>        <span class="n">leader</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">follower</span> <span class="o">=</span> <span class="n">leader</span>
+    <span class="k">return</span> <span class="n">total_count</span>
+</code></pre></div></div>]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="algorithms" /><summary type="html"><![CDATA[One of the most basic things that one can do with an array is to have a pointer or a set of pointers that traverse the array in some fashion. The number of pointers to book-keep depends on the question at hand. Let’s look at few sample problems to understand this concept:]]></summary></entry><entry><title type="html">Combinatorics, Tail sum for expectation and Simplices</title><link href="http://localhost:4000/statistics/combinatorics/" rel="alternate" type="text/html" title="Combinatorics, Tail sum for expectation and Simplices" /><published>2019-12-15T09:23:00-08:00</published><updated>2019-12-15T09:23:00-08:00</updated><id>http://localhost:4000/statistics/combinatorics</id><content type="html" xml:base="http://localhost:4000/statistics/combinatorics/"><![CDATA[<p><strong>1. How many different ways are possible to have $k-tuple$ with <em>non-negative integer</em> values such that they sum to a given value $n$?</strong></p>
+
+<p>$\to $To arrive at the solution, one can use the $stars-and-bars$ method. Let’s draw a sequence of n stars. There are $n-1$ spaces between the stars. What we need to do now to create $k$ numbers, is to place $k-1$ bars in those spaces. One such possibility for $n=6$ and $k=3$ is as follows:</p>
+
+\[\star\ | \star\  \star\ \star\ | \star\ \star \quad \quad \to 3-tuple\ (1, 3, 2)\]
+
+<p>Thus we need to choose $k-1$ locations out of the $n-1$ spaces available. The number of such combinations possible is thus $\binom{n-1}{k-1}$.</p>
+
+<p><strong>2. What if we allowed for the values to be 0? How many combinations are possible then?</strong></p>
+
+<p>$\to$ In the above case when all is done we placed $n+k-1$ objects(stars + bars). We were restricted by the fact that the values had to be <em>non-negative</em>. So we had to place the bars in the gaps between stars. However, now we do not have any such restriction. We can first choose $k-1$ slots out of $n+k-1$ slots available to place the bars. Once that is done, we just place the $n$ stars in the $n$ slots remaining. One such possibility for $n=6$ and $k=3$ is as follows:</p>
+
+\[\underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{|}\ \underset{\_}{\star}\ \underset{\_}{\star}\ \underset{\_}{\star} \quad \quad \to 3-tuple\ (0, 3, 3)\]
+
+<p>Given this discussion, the number of combinations of $k-tuple$ possible is $\binom{n+k-1}{k-1} = \binom{n+k-1}{n}$. This number is also known as the <a href="https://en.wikipedia.org/wiki/Multiset">multiset coefficient</a>.</p>
+
+<p><strong>3. We roll a fair dice $n$ times. What is the probability that all faces have appeared?</strong></p>
+
+<p>Lets $\mathcal{I_i}$ be the number of times a face $i$ has appeared after the dice has been rolled $n$ times. What we need is a $6-tuple\ (\mathcal{I_1}, \mathcal{I_2}, \mathcal{I_3}, \mathcal{I_4}, \mathcal{I_5}, \mathcal{I_6})$ such that the elements sum to $n$, and <strong>none</strong> of the values $\mathcal{I_i}$ are 0. The probability that all faces have appeared is then the result given in Que. 1 divided by the results given in Que 2.</p>
+
+<p>
+\begin{align}
+prob = \binom{n-1}{k-1} / \binom{n+k-1}{k-1} &amp;= \frac{n!\ (n-1)!}{(n-k)!\ (n+k-1)!}\\
+  &amp;= \frac{n!\ (n-1)!}{(n-6)!\ (n+5)!} \qquad \qquad k = 6
+\end{align}
+</p>
+
+<hr />
+
+<p>The <em>tail sum for expectation</em> formula for a non-negative integer random number is given as:</p>
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty P(X &gt; x)\]
+
+<p>Proof: To show this, one can use an interesting identity for any non-negative integer given by:</p>
+
+\[x = \sum_{k=0}^\infty \mathcal{I}(x &gt; k),\]
+
+<p>where $\mathcal{I}(condition)$ is an indicator function that evaluates to $1$ if condition is true, else 0. The well known formula for expectation can then becomes:</p>
+
+\[E[X] = \sum_{x=0}^\infty x\ P(X = x) = \sum_{x=0}^\infty \sum_{k=0}^\infty  \mathcal{I}(x &gt; k)\ P(X = x).\]
+
+<p>Switching the order of summation, we get the required result:</p>
+
+\[E[X] = \sum_{k=0}^\infty \sum_{x=0}^\infty \mathcal{I}(x &gt; k)\ P(X = x) = \sum_{k=0}^\infty P(X &gt; k).\]
+
+<hr />
+
+<p><strong>4. We draw a random number from Uniform distribution $\mathcal{U}[0, 1]$ and keep drawing till the sum of the draws is greater than or equal 1. On average how many samples would we need to draw?</strong></p>
+
+<p>If we independently draw $d$ times from Uniform distribution $\mathcal{U}[0, 1]$, the state-space of all possibilities correspond to the region $S$ in the following diagram (shown for $d=2$ and $d=3$):</p>
+
+<p align="center">
+  <img src="/static/img/simplex.png" width="500" />
+</p>
+
+<p>Each point in the region has equal probability. The state-space where the sum of the two draw is less than $1$ is then given by the region $R$. The probability that the sum of the samples drawn is less than $1$ is then the <em>volume</em> of $R$ divided by the <em>volume</em> of $S$.</p>
+
+<blockquote>
+The region $S$ is nothing but a hypercube in $d$-dimensions where $d$ is the number of draws. For $d=2$, it is a square, for $d=3$ it is a cube and so on. Since each side of this hypercube has length $1$, the volume of $S$ is trivially $1$.
+</blockquote>
+
+<p>The region $R$ in $d$-dimensions is nothing but a <a href="https://en.wikipedia.org/wiki/Simplex">standard $d-simplex$</a>.</p>
+
+<blockquote>
+The volume of such a simplex can be shown to be $\frac{1}{d!}$.
+</blockquote>
+
+<p>We can easily verify this for a couple of dimensions.</p>
+
+<p>
+\begin{align}
+Vol(2-simplex) &amp;= \int_{x=0}^1 \int_{y=0}^{1-x} dx\ dy = 1/2! \\
+Vol(3-simplex) &amp;= \int_{x=0}^1 \int_{y=0}^{1-x} \int_{z=0}^{1-x-y} dx\ dy\ dz = 1/3!
+\end{align}
+</p>
+
+<p>Let us now define the random variable whose expectation we require as $X$. In other words, $X=x$ means that we require $x$ draws from the distribution such that the cumulative sum of the draws is greater than or equal to $1$.</p>
+
+\[E[X] =  \sum_{x=0}^\infty x\ P(X = x)\]
+
+<p>Using the tail sum for expectation, we can write:</p>
+
+\[E[X] =  \sum_{x=0}^\infty P(X &gt; x)\]
+
+<p>$P(X &gt; x)$ means the probability that one requires more than $x$ draws to reach a sum greater than $1$. This can also be thought as the probability that in $x$ rolls, one obtained a sum less than $1$. Interestingly, this value is nothing but the volume of region $R$. Thus we have</p>
+
+\[E[X] =  \sum_{x=0}^\infty P(X &gt; x) = \sum_{x=0}^\infty \frac{1}{x!} = e \quad \quad (surprise!!!)\]
+
+<p>Thus, the average number of draws required till the cumulative sum of the draws is greater than or equal to $1$ is $e$.</p>]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="statistics" /><summary type="html"><![CDATA[1. How many different ways are possible to have $k-tuple$ with non-negative integer values such that they sum to a given value $n$?]]></summary></entry><entry><title type="html">Absorbing Markov Chains</title><link href="http://localhost:4000/statistics/absorbing-markov-chain/" rel="alternate" type="text/html" title="Absorbing Markov Chains" /><published>2019-12-13T09:23:00-08:00</published><updated>2019-12-13T09:23:00-08:00</updated><id>http://localhost:4000/statistics/absorbing-markov-chain</id><content type="html" xml:base="http://localhost:4000/statistics/absorbing-markov-chain/"><![CDATA[<p>A Markov chain containing absorbing states is known as an absorbing Markov chain. So what is an absorbing state. In simple words, if you end up on an absorbing state you can’t go anywhere else; you are stuck there for all eternity. In other words, the probability of transition from an absorbing state $i$ to any other non-absorbing state, also called transient states, is 0.</p>
+
+<p>At this point, we can make an observation:</p>
+
+<blockquote>
+0. The probability of eventually begin absorbed into any of the absorbing states given that one starts from anywhere is 1.
+</blockquote>
+
+<p>Let’s say we have $n$ transient states and $m$ absorbing states in the state space of any system. The transition matrix for such a system can be written as:</p>
+
+<p>$$T = \left[ \begin{matrix} Q &amp; R \\ 0 &amp; I \end{matrix} \right],$$</p>
+
+<p>where $Q$ of shape ($n \times n$) gives the probability of transitioning from transient state $i$ to transient state $j$. The matrix $R$ of shape $n \times m$ gives the probability of transitioning from transient state $i$ to absorbing state $j$, and $I$ of identity matrix of shape $m$.</p>
+
+<p>We can compute the respective probability weights of the various states given a current probability weights by applying the transition matrix following the Markov property:</p>
+
+\[v_{k+1} = T\ v_{k}\]
+
+<p>Recursively expanding the above equation to the starting state $v_0$, we have</p>
+
+\[v_{k} = T^k\ v_{0}\]
+
+<p>It is interesting to compute what $T^k$ is:</p>
+
+<p>
+$$
+\begin{align}
+T^2 &amp;= \begin{bmatrix} Q &amp; R \\ 0 &amp; I \end{bmatrix} \begin{bmatrix} Q &amp; R \\ 0 &amp; I \end{bmatrix} = \begin{bmatrix} Q^2 &amp; QR + RI \\ 0 &amp; I \end{bmatrix} \\
+T^3 &amp;= \begin{bmatrix} Q &amp; R \\ 0 &amp; I \end{bmatrix} \begin{bmatrix} Q^2 &amp; QR + RI \\ 0 &amp; I \end{bmatrix} = \begin{bmatrix} Q^3 &amp; Q^2R + QR + RI \\ 0 &amp; I \end{bmatrix}
+\end{align}
+$$
+</p>
+
+<p>Given the pattern we can write</p>
+
+<p>$$T^k = \begin{bmatrix} Q^k &amp; R(I + Q + Q^2 + ... + Q^k) \\ 0 &amp; I \end{bmatrix}$$</p>
+
+<p>Using the summation formula for a geometric sequence we can write:</p>
+
+<p>$$ T^k = \begin{bmatrix} Q^k &amp; R \left(\frac{I - Q^k}{I - Q}\right) \\ 0 &amp; I \end{bmatrix} $$</p>
+
+<p>From the above formula, we note that:</p>
+<blockquote>
+1. the probability the system is in transient state $j$ given that it started in transient state $i$ after $k$ steps is given by the $(i, j)^{th}$ entry of the matrix $Q^k$
+</blockquote>
+
+<p>The entries of $Q$ are all smaller than 1, given that these are probabilities. Hence we have $\lim_{k \to \infty} Q^k = 0$. This allows us to write</p>
+
+<p>$$T^\infty = \begin{bmatrix} 0 &amp; R \left(\frac{1}{I - Q}\right) \\ 0 &amp; I \end{bmatrix} = \begin{bmatrix} 0 &amp; NR \\ 0 &amp; I \end{bmatrix},$$</p>
+
+<p>where $N = [I - Q]^{-1}$ is known as the fundamental matrix. The $0’s$ in the first column of the above matrix proves statement given in blockquote 0.</p>
+
+<p>From the above formula, we note that:</p>
+
+<blockquote>
+2. the probability the system ends up in absorbing state $j$ given that it started in transient state $i$ is the $(i, j)^{th}$ entry of the matrix $NR$.
+</blockquote>
+
+<p>The fundamental matrix $N$ has a very interesting interpretation:</p>
+<blockquote>
+3. its $(i, j)^{th}$ entry corresponds to the expected number of times the system visits transient state $j$ given that it started in transient state $i$, before being absorbed.
+</blockquote>
+
+<p>To see this, let us use a random indicator variable $\mathcal{I}_k$ which is 1 if the system is in state $j$ during $k^{th}$ step, else 0. The expected value of this indicator variable is:</p>
+
+\[E[\mathcal{I}_k] = 1 \times prob(\mathcal{I}_k = 1) + 0 \times  prob(\mathcal{I}_k = 1) = Q^k_{i, j} \quad ......... \text{refer blockquote 1}\]
+
+<p>The total number of visits we make to state $j$ in $n$ steps of the Markov chain is simply summing up all these indicator variables (one for each step).</p>
+
+\[\text{total_visits after $n$ steps} = \mathcal{I}_0 + \mathcal{I}_1 + \mathcal{I}_2 + .....+\ \mathcal{I}_n\]
+
+<p>Taking the expectation we get</p>
+
+<p>
+$$
+\begin{align}
+E[\text{total_visits after $n$ steps}] &amp;= E[\mathcal{I}_0] + E[\mathcal{I}_1] + E[\mathcal{I}_2] + .....+\ E[\mathcal{I}_n] \\
+&amp;= Q^0_{i, j} +\ Q^1_{i, j} +\ ...+\ Q^n_{i, j}
+\end{align}
+$$
+</p>
+
+<p>Taking $n \to \infty$, we have
+\(E[\text{total_visits}] = Q^0_{i, j} +\ Q^1_{i, j} +\ ...+\ Q^\infty_{i, j} = [I - Q]^{-1}_{i, j} = N_{i, j}\)</p>
+
+<p>Summing this over all the possible transient states, we get the expected number of steps the Markov chain runs for, starting at state $i$, before getting absorbed into one of the absorbing states. This is nothing but adding the entries of the $i^{th}$ row of $N_{i, j}$:</p>
+
+\[t_i = \sum_j N_{i, j}\]
+
+<hr />
+
+<p>Q1. <strong>On average, how many times do we have to roll a fair dice before seeing two 6’s in a row?</strong></p>
+
+<p>Solution: One can represent the state space as $S = [6, E, 66]$, with $66$ being the absorbing state.</p>
+<p align="center">
+  <img src="/static/img/markov_66.png" width="400" />
+</p>
+
+<p>where $E = \{\phi, 1, 2, 3, 4, 5\}$. $\phi$ represents the null state $\to$ the state before we even began rolling the dice.</p>
+
+<p>The transition matrix can be written as:</p>
+
+<p>$$T = \begin{bmatrix} 0 &amp; 5/6 &amp; 1/6 \\ 1/6 &amp; 5/6 &amp; 0 \\ 0 &amp; 0 &amp; 1\end{bmatrix},$$</p>
+
+<p>where the labels corresponds to the index as given in $S$. The fundamental matrix $N$ is given by:</p>
+
+<p>
+$$
+\begin{align}
+N = [I - Q]^{-1} &amp;= \left(\begin{bmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{bmatrix} - \begin{bmatrix} 0 &amp; 5/6 \\ 1/6 &amp; 5/6 \end{bmatrix}\right)^{-1}\\
+   &amp;= \begin{bmatrix} 6 &amp; 30 \\ 6 &amp; 36 \end{bmatrix}
+\end{align}
+$$
+</p>
+
+<p>Since we begin in state $\phi$ which is at index $1$ (assuming 0 indexing), the average number of dice rolls before seeing two 6’s in a row is</p>
+
+\[t_1 = N_{1,0} + N_{1, 1} = 42\]
+
+<hr />
+
+<p>Q2. <strong>You keep on tossing a fair coin until you see HHT or THT. Which of these combination is more likely to occur?</strong></p>
+
+<p>The trick in most of such problems is to correctly identify the relevant state space. For this problem, the state space that we can use is
+$S = [\phi, HH, HT, TH, TT, HHT, THT]$, where $HHT$ and $THT$ are the absorbing state. The transition diagram then becomes:</p>
+
+<p align="center">
+  <img src="/static/img/trans_diagram.png" width="400" />
+</p>
+
+<p>The red arrows indicates rolling a heads on the next roll, while blue arrows indicate rolling a tails on the next turn. Given this, the transition matrix becomes:</p>
+
+<p align="center">
+  <img src="/static/img/transition_mat.png" width="400" />
+</p>
+<!--
+$$T = \begin{bmatrix} 0 & 1/4 & 1/4 & 1/4 & 1/4 & 0 & 0 \\
+                      0 & 1/2 & 0 & 0 & 0 & 1/2 & 0 \\
+                      0 & 0 & 0 & 1/2 & 1/2 & 0 & 0 \\
+                      0 & 1/2 & 0 & 0 & 0 & 0 & 1/2 \\
+                      0 & 0 & 0 & 1/2 & 1/2 & 0 & 0 \\
+                      0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+                      0 & 0 & 0 & 0 & 0 & 0 & 1 \end{bmatrix},$$ -->
+
+<p>where the labels corresponds to the index as given in $S$. The fundamental matrix then becomes:</p>
+
+<p>
+$$N = [I - Q]^{-1} = \begin{bmatrix} 1 &amp; 0 &amp; 0  &amp; 0 &amp; 0 \\
+                      0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+                      0 &amp; 0 &amp; 1 &amp; 0 &amp; 0\\
+                      0 &amp; 0 &amp; 0 &amp; 1 &amp; 0\\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 1\\ \end{bmatrix},
+$$
+</p>
+
+<p>where the $Q$ matrix is shown in green box. Following blockquote 2. the required matrix is given by:</p>
+
+<p>$$P = NR = \begin{bmatrix} 5/8 &amp; 3/8 \\ 1 &amp; 0 \\ 1/2 &amp; 1/2 \\ 1/2 &amp; 1/2 \\1/2 &amp; 1/2 \end{bmatrix},$$</p>
+
+<p>where $R$ is the matrix shown in blue. Thus the probability of starting from $\phi$ and ending up in the $HHT$ state is $5/8$, while ending up in the $THT$ state is $3/8$.</p>
+
+<p>Q3. <strong>On average, how many times must a 6-sided die be rolled until all sides appear at least once? What about for an n-sided die?</strong></p>
+
+<p>Let $n_i$ be the number of times face $i$ has shown up since we started rolling the dice. We now define an indicator variable $\mathcal{I}_i = \mathcal{I} (n_i &gt; 0)$ and a random variable $X$ that is the sum of these indicator variables $\mathcal{I}_1$ to $\mathcal{I}_6$. The possible values of $X$ serves as the states of the system, i.e. $S = [1, 2, 3, 4, 5, 6]$.</p>
+
+<p>The state $X=6$ can then be identified as the absorbing state, which happens when we see all the faces of the dice. The state diagram is given as:</p>
+
+<p align="center">
+  <img src="/static/img/dice_face.png" width="400" />
+</p>
+
+<p>The transition matrix corresponding to this can be written as:</p>
+
+<p>
+$$T = \begin{bmatrix}
+                      1/6 &amp; 5/6 &amp; 0 &amp; 0 &amp; 0 &amp;0 \\
+                      0 &amp; 2/6 &amp; 4/6 &amp; 0 &amp; 0 &amp;0\\
+                      0 &amp; 0 &amp; 3/6 &amp; 3/6 &amp; 0 &amp;0\\
+                      0 &amp; 0 &amp; 0 &amp; 4/6 &amp; 2/6 &amp;0\\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 5/6 &amp;1/6\\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix},$$
+</p>
+
+<p>where the labels corresponds to the index as given in $S$. The fundamental matrix is given by:</p>
+
+<p>
+$$N = [I - Q]^{-1} = \begin{bmatrix}
+                      1.2 &amp; 1.5 &amp; 2 &amp; 3 &amp; 6 \\
+                      0 &amp; 1.5 &amp; 2 &amp; 3 &amp; 6\\
+                      0 &amp; 0 &amp; 2 &amp; 3 &amp; 6\\
+                      0 &amp; 0 &amp; 0 &amp; 3 &amp; 6\\
+                      0 &amp; 0 &amp; 0 &amp; 0 &amp; 6
+\end{bmatrix}$$
+</p>
+
+<p>Since we begin in state $1$ (after one dice roll) which is at index $0$, the average number of dice rolls before seeing all sides appear is:</p>
+
+\[t_{\phi} = 1 + \sum_{j} N_{0j} = 1 + (1.2 + 1.5 + 2 + 3 + 6) = 14.7\]
+
+<p>The $1$ in the above equation is needed since initially we start with no dice roll (state $\phi$). The above summation can be written in an interesting way:</p>
+
+\[t_{\phi} = 6\left(\frac{1}{6} + \frac{1}{5} + \frac{1}{4} + \frac{1}{3} + \frac{1}{2} + 1 \right)\]
+
+<p>The quantity in the bracket is nothing but the $6^{th}$ <a href="https://en.wikipedia.org/wiki/Harmonic_number">Harmonic number</a> $H_6$. Hence generalizing to arbitrary sided dice, the expected number of rolls required before seeing all the faces of the $n-sided$ dice is:</p>
+
+\[t_n = n\ H_n\]
+
+<!-- <hr> -->]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="statistics" /><summary type="html"><![CDATA[A Markov chain containing absorbing states is known as an absorbing Markov chain. So what is an absorbing state. In simple words, if you end up on an absorbing state you can’t go anywhere else; you are stuck there for all eternity. In other words, the probability of transition from an absorbing state $i$ to any other non-absorbing state, also called transient states, is 0.]]></summary></entry><entry><title type="html">Logistic Regression</title><link href="http://localhost:4000/statistics/logistic-regression/" rel="alternate" type="text/html" title="Logistic Regression" /><published>2019-11-12T09:23:00-08:00</published><updated>2019-11-12T09:23:00-08:00</updated><id>http://localhost:4000/statistics/logistic-regression</id><content type="html" xml:base="http://localhost:4000/statistics/logistic-regression/"><![CDATA[<p>One of the most common test case in supervised machine learning is that of classification:</p>
+
+<blockquote>
+  <p>Given a data point, classify it into one of the many labels available</p>
+</blockquote>
+
+<p>The simplest case of this is binary classification. For e.g. classifying emails as spam or ham,
+classifying objects as star or galaxy, classifying images as a cat or a dog, etc. In all these cases, to be able to apply the
+mathematical modeling of machine learning one needs to <em>abstract</em> away some <em>feature(s)</em> of the object. Most often choosing or engineering the right features is what gives more power to predictive modeling rather than sophisticated models.</p>
+
+<blockquote>
+If your features are crappy, no amount of sophisticated models can come to the rescue.
+</blockquote>
+
+<p>However, in this post we are going to assume that we already have the features in hand. Given this, there are broadly two different ways of approaching classification problems - parametric and non-parametric. The topic we are going to discuss falls in the non-parametric approaches; more specifically as a linear model. It creates a linear boundary separating objects of one class from the other given as:</p>
+
+\[y = sign(x'^T w' + w_0) = x^T w, \qquad y \in \{-1, 1\}.\]
+
+<p>Conceptually, one can also think of the boundary as a set of points in the feature space whose probability of belonging to class $y=1$ (or $y=-1$) is half. As we move away from the boundary, on one side the probability of belonging to $y=1$ diminishes, while on the other end it approaches 1.</p>
+
+<p align="center">
+  <img src="/static/img/log_reg_eg.png" width="400" />
+</p>
+
+<blockquote>
+  <p>Mathematically, what we want is a <em>specific</em> function of the perpendicular distance of any point from the boundary given by $d_\perp = x^T w$, whose value on the boundary be 0.5 and should range from 0 to 1 as we move from one side of the boundary to the other.</p>
+</blockquote>
+
+<p>Given these properties, the value of this function for any point can be interpreted as its probability of belonging to class $y=1$. There are many such functions that we could choose as shown below.</p>
+
+<p align="center">
+  <img src="/static/img/link_function.png" width="600" />
+</p>
+
+<p>The functional form used by Logistic regression is:</p>
+
+\[\mathrm{Prob}[x \in (y=1)] = f(d_\perp) = \frac{e^{d_\perp}}{1 + e^{d_\perp}} = \frac{e^{x^T w}}{1 + e^{x^T w}}\]
+
+<hr />
+
+<p>One common terminology used in this regards is that of <em>Odds</em>. It is defined as:</p>
+
+\[Odds = \frac{P(y = 1)}{P(y = -1)} = \frac{P(y = 1)}{1 - P(y = 1)}\]
+
+<p>The domain of Odds lies in the range $[0, \infty)$. The natural logarithm of the above quantity is called <em>Log Odds</em> which lies in the range $(-\infty, \infty)$. This can be shown to be</p>
+
+\[Log\ Odds = x^T w\]
+
+<p>Thus we can interpret coefficient corresponding to a given predicting variable as: <strong>the change in log odds for a unit change in a given variable keeping the rest variables fixed.</strong></p>
+
+<hr />
+
+<p>Our goal in now to estimate the value of the parameters of the model, $w$, from training data. However, to assess which values of the parameters are <em>good</em>, we have to first define the likelihood. Under the assumption that each data-point is independent of every other data-point, we have:</p>
+
+\[\mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\perp^i)][\mathcal{I}(y_i = -1) 1 - f(d_\perp^i)]\]
+
+<p>Remember, $f(d_\perp)$ gives the probability of belonging to class $y=1$. So if a data-point belongs to $y=-1$ we need to use $1 - f(d_\perp)$.</p>
+
+<p>
+$$\begin{align} \mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) &amp;= \prod_{i=1}^n \left[\mathcal{I}(y_i = 1) \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right] \left[\mathcal{I}(y_i = -1) \left(1 - \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right) \right] \\\\
+&amp;= \prod_{i=1}^n \frac{e^{y_i x_i^T w}}{1 + e^{y_i x_i^T w}}\end{align}$$
+</p>
+
+<p>Writing in terms of log-likelihood this becomes:</p>
+
+<p>
+$$ \begin{align} \log\ \mathcal{L} &amp;= \sum_{i=1}^n \log [e^{y_i x_i^T w}] - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \\\\
+&amp;= \sum_{i=1}^n y_i x_i^T w - \sum_{i=1}^n \log [1 + e^{y_i x_i^T w}] \end{align}$$
+</p>
+
+<p>The value of $w$ we are looking for them becomes:</p>
+
+\[w_{ML} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L}\]
+
+<p>However, there is no analytical solution for $w$ given the form of the likelihood. That’s where <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> comes to the rescue. We first randomly initialize $w$ and iteratively update it till a convergence criterion is reached.</p>
+
+\[w_{t+1} = w_t + \eta\ \nabla_w \log \mathcal{L},\]
+
+<p>where $\eta$ is the learning rate. The gradient in the above equation is easy to compute, given by:</p>
+
+\[\nabla_w\ \log \mathcal{L} = \sum_i^n y_i x_i \left[\frac{1}{1 + e^{y_i x_i^T w}}\right].\]
+
+<p>More often that not, using the maximum likelihood prescription as above leads to estimates that have high variance. Especially in the case when one has fewer data-points than that is representative of the population, the classifier will be able to clearly separate the two classes with a linear boundary, with no misclassified points. In that case the value of $w$ will blow up. Points on either side of the boundary will be classified as belonging to their respective classes with probability of 1. This however may not generalize to new data-points and lead to a classifier with high variance. <em>You basically <strong>read</strong> too much into your data, leading to overfitting.</em></p>
+
+<p>This can be prevented using <a href="https://towardsdatascience.com/regularization-in-machine-learning-76441ddcf99a">regularization</a>. To keep the estimated $w$ from becoming too large, one can add a penalty term to the likelihood.</p>
+
+\[w_{reg} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L} - \lambda ||w||^2 \qquad \mathrm{Ridge}\]
+
+\[w_{reg} = \underset{w}{\mathrm{argmax}} \log\ \mathcal{L} - \lambda ||w||_1 \qquad \mathrm{Lasso}\]]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="statistics" /><summary type="html"><![CDATA[One of the most common test case in supervised machine learning is that of classification:]]></summary></entry><entry><title type="html">Poisson Process</title><link href="http://localhost:4000/statistics/poisson-process/" rel="alternate" type="text/html" title="Poisson Process" /><published>2019-09-28T10:23:00-07:00</published><updated>2019-09-28T10:23:00-07:00</updated><id>http://localhost:4000/statistics/poisson-process</id><content type="html" xml:base="http://localhost:4000/statistics/poisson-process/"><![CDATA[<p>Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.</p>
+
+<p>Now what in the world is a Poisson process. If we think $\lambda$ as the number of raindrops falling on the patch per minute, and let’s say we wait for 5 minutes; how many raindrops will we see? Well, on average we would see $5\lambda$ drops. However, we might see more or we might see less. A Poisson process is one in which this count of drops is <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distributed</a>.</p>
+
+<p>This discrete probability distribution is given by:</p>
+
+\[P(k\ \mathrm{events\ in\ interval}\ t) = \frac{ (\lambda t)^k e^{-\lambda t}}{k!}\]
+
+<!-- ![composite](/static/img/poisson.png =100x20){:class="img-responsive"} -->
+<p align="center">
+  <img src="/static/img/poisson.png" width="350" />
+</p>
+
+<p>An interesting property about Poisson distribution is that its mean and variance are equal and they are simply $\lambda t$.</p>
+
+<p>Now let’s say we were curious about counting the inter-arrival time between raindrops. Well if there are on average $\lambda$ drops falling per minute, the inter-arrival time on average should be $1/\lambda$. But what is the actual shape of the probability distribution of the inter-arrival times? In this case, the pdf is over a continuous domain and happens to be the <a href="https://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>. It has one free parameter and you guessed it, its the same $\lambda$ parameter that we have been using till now.</p>
+
+\[P(t|\lambda) = \lambda\ e^{-\lambda t}\ \forall\ t \ge 0\]
+
+<p align="center">
+  <img src="/static/img/exponential.png" width="400" />
+</p>
+
+<p>The distribution has mean $1/\lambda$ as we expected, and a variance of $1/\lambda^2$.</p>
+
+<p>Here we can imaging a scenario. You decide to go inside to get your cup of tea. You now think how long will it take for you to see a raindrop on average once you go back outside. You calculate, on average the inter-arrival time is $1/\lambda = 6$ seconds. Given that you decide to go out randomly, it will take 3 seconds before you see the next raindrop. But is it?</p>
+
+<p>Plotted are the arrival times(in seconds) of the first 20 drops that I simulated using $\lambda=10\ \mathrm{drops/min}$.</p>
+
+<p align="center">
+  <img src="/static/img/drops.png" width="400" />
+</p>
+
+<p>When you go out carrying your cup of tea which of the intervals(region between two drops) above are you more likely to hit. Obviously the regions with larger width. In other words, regions with larger width are oversampled. However these larger width regions also occurs less frequently (Refer fig. 2). So the probability distribution of encountering region $R$ of interval size $T$ is:</p>
+
+\[P(\mathrm{Region}\ R\ \mathrm{of\ size}\ T) = \lambda^2 T\ e^{-\lambda T}\]
+
+<p>On expectation, the region that we are most likely to encounter has width given by:</p>
+
+\[E[W] = \int_0^\infty T\ pdf(T)\ dT = \int_0^\infty T\ \lambda^2 T\ e^{-\lambda T} = \frac{2}{\lambda}\]
+
+<p>Since we are walking in randomly, the interval that we would observe is then half of the above value. But guess what this value is $1 / \lambda$, the expected arrival times between two raindrops, which in our case is 6 seconds and not 3 seconds are we thought before.</p>
+
+<p>A take on this interesting phenomenon in case of bus arrival times, known as the <em>waiting time paradox</em>; which states:</p>
+
+<blockquote>
+  When waiting for a bus that comes on average every 10 minutes, your average waiting time will be 10 minutes.
+</blockquote>
+
+<p>A nice discussion on this paradox can be found in this <a href="https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/">post</a> by Jake Vanderplas. The waiting time paradox is a specific example of the <a href="https://towardsdatascience.com/the-inspection-paradox-is-everywhere-2ef1c2e9d709"><em>inspection paradox</em></a>.</p>
+
+<p>Let’s continue on our journey of exploring distributions via raindrops. You now ask, what is the time interval between $n$ consecutive raindrops? There are $n-1$ intervals between $n$ consecutive raindrops, with each interval having a size $t$ given by the exponential distribution. So what we want is the random variable which is the sum of $k = n-1$ exponentially distributed random variables. The pdf of this random variable is the <a href="https://en.wikipedia.org/wiki/Gamma_distribution">Gamma distribution</a>:</p>
+
+\[P(x | k, \lambda) = \frac{\lambda^k\ x^{k - 1} e^{-\lambda x}}{\Gamma(k)}\]
+
+<p align="center">
+  <img src="/static/img/gamma.png" width="400" />
+</p>
+
+<p>Our exploration uncovers a key finding that the various distributions are interconnected. For more such relations refer to this <a href="https://en.wikipedia.org/wiki/Relationships_among_probability_distributions">link</a>. What we discussed was Poisson process in the time domain, raindrops or photons hitting a telescope; one can also have Poisson processes in the spatial domain. Its easier to visualize this in 2D, and we can take an example of trees growing in a forest. Analogous to the time domain discussion above, we have a rate parameter $\lambda$ which is <em>number of trees per unit area</em>. If we take a square of area A, move it across the forest, each time counting the number of trees that fall in the square, the count is going to be a random variable which, the same as before, is going to be Poisson distributed:</p>
+
+\[P(k\ \mathrm{trees\ in\ area}\ A) = \frac{ (\lambda A)^k e^{-\lambda A}}{k!}\]]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="statistics" /><summary type="html"><![CDATA[Let’s imagine rain falling. One obvious parameter describing this process is the rate - whether its drizzling or pouring! Let’s now focus on a tiny patch of land and assume that the rate is constant and will term this as $\lambda$. We can describe rain as a Poisson process.]]></summary></entry><entry><title type="html">PDF of a dependent variable</title><link href="http://localhost:4000/statistics/pdf-of-function/" rel="alternate" type="text/html" title="PDF of a dependent variable" /><published>2019-04-07T10:18:23-07:00</published><updated>2019-04-07T10:18:23-07:00</updated><id>http://localhost:4000/statistics/pdf-of-function</id><content type="html" xml:base="http://localhost:4000/statistics/pdf-of-function/"><![CDATA[<blockquote>
+    ``The Calculus required continuity, and continuity was supposed to require the infinitely little; but nobody could discover what the infinitely little might be."
+    <p> &emsp;&emsp;&emsp;&emsp; -- Bertrand Russell in Mysticism and Logic and Other Essays, The Floating Press, 1 August 2010, p.100</p>
+</blockquote>
+
+<p>Many-a-time when working with model fitting to data, one encounters a
+situation where one need to find the probability distribution of a random
+variable, which itself is a function of another random variable.</p>
+
+<blockquote>
+  <p>Given that $x$ has a probability distribution $pdf_X(x)$, and that the variable $y$ is related to $x$ as $y = f(x)$, what is the probability distribution function of $y$?</p>
+</blockquote>
+
+<p>Naively, one might think for a given value $y’$, one can just <em>pick up</em> its
+probability as $f_X(x’)$, where $y’ = f(x’)$. This is correct when $x$ is a discrete random variable and we are talking about probability mass function. However, when $x$ is a continuous random variable, this approach gives <em>wrong</em> results. For the continuous case, the probability of a single point has no meaning. Rather, it is the probability of finding something in a <em>given interval</em> that is conserved across transformations. Making the interval become infinitesimal, we can approximate the area under the curve by a rectangle as shown in the figure. This area (mass) is the same when we transform to the variable $y$. In other words the following equality holds:</p>
+
+\[\mathrm{pdf}_X(x)\ dx = \mathrm{pdf}_Y(y)\ dy, \qquad ......dy = f'(x)\ dx\]
+
+<p class="mycenter"><img src="/static/img/xkcd.png" alt="" /></p>
+
+<style>
+.mycenter {
+    text-align:center;
+    display: block;
+    margin: 0 auto;
+}
+</style>
+
+<p>Let’s look at a few examples:</p>
+
+<p>1.
+    LogNormal Distribution: If $x$ is Gaussian distributed, then $y = e^x$ is said to have <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>. Let’s find its pdf using the above relation.</p>
+
+\[g_Y(y) = f_X(x) \frac{dx}{dy} = \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\displaystyle \frac{(x -\mu)^2}{2 \sigma^2}} \left(\frac{1}{y}\right) =  \frac{1}{\sqrt{2 \pi  \sigma^2}y} e^{-\displaystyle \frac{(\ln y -\mu)^2}{2 \sigma^2}}\]
+
+<p><img src="/static/img/pdf-of-function.png" alt="composite" class="img-responsive" /></p>
+
+<p>2.
+ Flux transmission:
+The flux field we observe from the absorption of Lyman-alpha photons by neutral Hydrogen in the intergalactic medium is related to the density field which is Gaussian in nature through the relation:</p>
+
+\[F(\mathbf{x}) = \exp \left[-A \exp \left(\beta \left[\delta_g(\mathbf{x}) - \frac{\sigma_g^2}{2} \right] \right) \right]\]
+
+<p>The dependence of flux on density is thus highly non-linear. However, at earlier times when the variance on $\delta$ was small, the flux was roughly Gaussian distributed too. To find the exact pdf, we start by noting that:</p>
+
+\[\frac{dF}{d\delta_g} = \beta\ F \ln F\]
+
+<p>Thus we have,</p>
+
+\[p(F) = -\frac{p(\delta_g)}{\beta\ F\ ln F},\]
+
+<p>where $\delta_g$ for a given $F$ can be calculated from the first equation. We need a negative sign cause $F$ is a monotonically decreasing function of $\delta_g$.</p>]]></content><author><name>Vikrant Kamble</name><email>vikrant.kamble1990@gmail.com</email></author><category term="statistics" /><summary type="html"><![CDATA[``The Calculus required continuity, and continuity was supposed to require the infinitely little; but nobody could discover what the infinitely little might be." &emsp;&emsp;&emsp;&emsp; -- Bertrand Russell in Mysticism and Logic and Other Essays, The Floating Press, 1 August 2010, p.100]]></summary></entry></feed>
