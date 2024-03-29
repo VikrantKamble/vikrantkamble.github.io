@@ -65,8 +65,22 @@ def two_sum_sorted(nums: List[int], target: int) -> bool:
     return False
 ```
 
+
+- You are given an integer array *nums* of length n; such that each element represent a height of a column placed at that index, with the base resting on the $x-axis$. Find two lines that together with the x-axis form a container, such that the container contains the most water and return the maximum amount of water a container can store.
+
 ![](/images/container_most_water.png)
 
+Since we need to create a *container*, we need two columns and hence two pointers, the left and the right column of the container places at indices $i$ and $j$, such that $i < j$. Now the question is what should be the *initial* placement of these pointers.
+
+We actually only have 2 sensible choices:
+- One after other $i=0, j=1$
+- Opposite ends $i=0, j=len(nums) - 1$.
+
+At any given configuration $(i, j)$, the volume of the water contained is: $V = width \times height = (j - i) * min(nums[i], nums[j])$. 
+
+If we place the pointers at opposite ends, then in every iteration we will either increment $i$ or decrement $j$, i.e. the *width* will **always** decrease. Hence the only hope of finding the container with more water is to increase the height. Since the height of the water volume is controlled by the smaller of the two columns, the pointer of the column which is smallest should be updated.
+
+If instead we had chosen the `one-after-other` configuration, then in each iteration, the *width* will either decrease or increase and we won't be able to make a decision as to which pointer to update as we did above.
 
 ```python
 def most_water_container(heights: List[int]) -> int:

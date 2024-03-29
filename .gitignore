@@ -163,3 +163,5 @@ doc/build/*
 __s3_test.txt
 .vscode/settings.json
 .history/
+
+_site

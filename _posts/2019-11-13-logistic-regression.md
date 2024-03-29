@@ -4,6 +4,7 @@ title:  "Logistic Regression"
 date:   2019-11-13 00:23:00 +0700
 categories: [statistics]
 usemathjax: true
+comments: true
 ---
 
 
@@ -39,9 +40,9 @@ Given these properties, the value of this function for any point can be interpre
   <img src="/static/img/link_function.png" width="600"/>
 </p>
 
-The functional form used by Logistic regression is:
+The functional form used by Logistic regression is the *sigmoid* function:
 
-$$\mathrm{Prob}[x \in (y=1)] = f(d_\perp) = \frac{e^{d_\perp}}{1 + e^{d_\perp}} = \frac{e^{x^T w}}{1 + e^{x^T w}}$$
+$$\mathrm{Prob}[x \in (y=1)] = f(d_\perp) = \frac{e^{d_\perp}}{1 + e^{d_\perp}} = \frac{e^{x^T w}}{1 + e^{x^T w}} = \sigma (x^T w)$$
 
 ---
 
@@ -61,9 +62,9 @@ Thus we can interpret coefficient corresponding to a given predicting variable a
 
 Our goal in now to estimate the value of the parameters of the model, $w$, from training data. However, to assess which values of the parameters are *good*, we have to first define the likelihood. Under the assumption that each data-point is independent of every other data-point, we have:
 
-$$\mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\perp^i)][\mathcal{I}(y_i = -1) 1 - f(d_\perp^i)] $$
+$$\mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) = \prod_{i=1}^n [\mathcal{I}(y_i = 1) f(d_\perp^i)][\mathcal{I}(y_i = -1) (1 - f(d_\perp^i))] $$
 
-Remember, $f(d_\perp)$ gives the probability of belonging to class $y=1$. So if a data-point belongs to $y=-1$ we need to use $1 - f(d_\perp)$.
+Remember, $f(d_\perp)$ gives the probability of belonging to class $y=1$. So if a data-point belongs to $y=-1$ we need to use $1 - f(d_\perp)$. Here $\mathcal{I}$ is an indicator variable to denote if a particular datapoint belongs to positive class or not.
 
 <p>
 $$\begin{align} \mathcal{L} = \prod_{i=1}^n p(y_i | x_i, w) &= \prod_{i=1}^n \left[\mathcal{I}(y_i = 1) \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right] \left[\mathcal{I}(y_i = -1) \left(1 - \frac{\displaystyle e^{x_i^T w}}{1 + e^{x_i^T w}} \right) \right] \\\\
