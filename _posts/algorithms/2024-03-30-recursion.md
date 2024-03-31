@@ -40,14 +40,39 @@ def tower_of_hanoi(n, start, middle, end):
 As we saw [previously]({% post_url /algorithms/2024-03-30-traversals %}), a *depth-first* traversal of a *binary tree* can also be implemented recursively.
 
 ---
-**Note:** A recursive algorithm can also be implemented as an iterative algorithm and vice-versa. Sometimes, one approach is much easier to help solve the problem than the other. So, if you feel stuck or having a hard time with one approach, using the complementary approach might help. Most of the graph and trees problem are easier to solve with the *recursive* approach; while problems involving arrays and dynamic programming are mostly easier with the *iterative* approach. 
+
+Recusive/iterative duality
+----------
+
+**Note:** A recursive algorithm can also be implemented as an iterative algorithm and vice-versa. Sometimes, one approach is much easier to help solve the problem than the other. So, if you feel stuck or having a hard time with one approach, using the complementary approach might help. 
+
+Most of the graph and trees problem are easier to solve with the *recursive* approach; while problems involving arrays and dynamic programming are mostly easier with the *iterative* approach. The reason being that an array can be traversed from left to right or from right to left with the same effort. However, trees for example have a natural ordering; it is easier to go from *node* to its *children*, rather than from *children* to its *parent*. The base case in this type of data structure are the *leaf* children. Hence a *recusive* approach works best.
+
+In this [post]({% post_url /algorithms/2024-03-08-arrays %}) we saw an iterative implementation of Kadane's algorithm. Here we turn it into a recursion. The strategy is the same - we find, for each index, the max sum subarray that ends on that index, and then we choose the max out of these. **H**owever the direction of traversal is opposite; whereas in the iterative case, we started filling from `left` to `right`; for the recursive case we start the recursive from the last index and recurse to the base case - the base case being the single first element.
+
+```python
+def max_sum_subarray_rec(nums):
+    def util(i):
+        if i == 0:  # base case
+            curr_sum = nums[i]
+        else:  # recursive case
+            curr_sum = max(nums[i], nums[i] + util(i-1))
+        util.res = max(util.res, curr_sum)
+        return curr_sum
+    
+    util.res = float('-inf')
+    util(len(nums) - 1)
+    return util.res
+```
 
 ---
+
+Split BST
+----------
 
 Let us take the following problem. We want to split a BST into two separate BSTs given a target. One subtree has nodes that are all smaller or equal to the target value, while the other subtree has all nodes that are greater than the target value.
 
 Again, let's apply the recursive formulation:
-
 - What is the base case?
     - Well, if the root itself is `NULL`, then we can simply return `[None, None]`. 
     - What if the root itself is equal to the target? Since its a BST, we know that the right subtree starting at *root* will all have values greater than the *root*. Hence we can simply detach the right subtree and return `[root, root.right]` as the result.
@@ -71,4 +96,51 @@ def split_bst(root, target):
         small, large = split_bst(root.left, target)
         root.left = large
         return small, root
+```
+
+---
+
+Max Sum Path BST
+--------
+
+Given a binary tree, find the path with the maximum sum. The path can start at any node and end at any node.
+
+Here we will apply the *recusive* version of Kadane's algorithm. Let's say, for a given node, we have the two *max paths*, one ending on the *left* child and one ending on the *right* child. Now what is the max path **ending on the node**? We have three options: either we extend the `left` path (green), or we extend the `right` path (blue); or we simply go solo and do not extend either of the paths (red).
+
+![](/images/posts/max_path_bt.png)
+
+But what about the max path in general, that can start at any node and end at any node. Well, for this case we also need to take the path that can be obtaining the *left* and the *right* path (shown in orange). That is:
+
+$$max sum = max(max sum, green, blue, red, orange)$$
+
+```python
+def max_sum_path_util(root):
+    """ Returns max sum path ending on the root.
+    """
+    if root is None: # Base case
+        return 0
+    
+    left_end_max_sum = max_sum_path_util(root.left)  # recursive case
+    right_end_max_sum = max_sum_path_util(root.right)  # recursive case
+
+    max_single_left_right = max(
+        left_end_max_sum + root.val,    # green path
+        right_end_max_sum + root.val,   # blue path
+        root.val,                       # red path
+    )
+
+    # global max path
+    max_sum = max(
+        left_end_max_sum + right_end_max_sum + root.val, # orange path
+        max_single_left_right
+    )
+    max_sum_path_util.res = max(max_sum_path_util.res, max_sum)
+
+    return max_single_left_right
+
+def max_sum_path(root):
+    max_sum_path_util.res = float('-inf')
+
+    max_sum_path_util(root)
+    return max_sum_path_util.res
 ```
