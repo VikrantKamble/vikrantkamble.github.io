@@ -54,7 +54,7 @@ def post_order_traversal(node) -> None:
 ```
 
 $\rightarrow$ For the case where we want to go *wide* first (breadth-first search), we can use 
-a *queue* for the traversal. Note that this traversal basically prints the values on a *per-level* basis, hence
+a *queue* for the traversal. For more details on *queue*, refer to this [page]({% post_url /algorithms/2024-03-31-common-ds %}). Note that this traversal basically prints the values on a *per-level* basis, hence
 it is also called as **Level-order** traversal.
 
 ```python
@@ -131,4 +131,27 @@ def shortest_path_binary(grid):
     # if we reach here, we haven't found any path
     return -1
 
+```
+
+```python
+from collections import deque
+
+def shortest_path(start):
+    """ Shortest path from start to every other vertex.
+    """
+    shortest_path_map = {start: 0}
+
+    queue = deque([start])
+    while queue:
+        curr_node = node.popleft()
+        for child, weight in zip(curr_node.children, curr_node.weights):
+            connceted_path_length = weight + shortest_path_map[curr_node]
+            if child not in shortest_path_map:
+                shortest_path_map[child] = connected_path_length
+                queue.append(child)
+            else:
+                if shortest_path_map[child] > connected_path_length:
+                    shortest_path_map[chid] = connected_path_length
+                    queue.append(child)
+    return shortest_path_map
 ```

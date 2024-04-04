@@ -67,6 +67,41 @@ def max_sum_subarray_rec(nums):
 
 ---
 
+Merge Sort
+--------
+
+Let's take the classic problem of sorting an array and see how we can apply recursion to solve the task. 
+
+We basically want a function that takes an input and sorts it. Let's say we already have a function to do this; how will it look like. We can 
+break the input array into parts and sort each of the part. This is the recursive aspect - we can use the function **itself** to accomplish this. 
+The base case being when there is a single element, in which case nothing needs to be done.
+
+Now that we have two sorted arrays, how to put them together into one sorted array? We can use the *pointer* technique as discussed here. We keep 
+two pointers at the start of each of the two sorted arrays. We then compare the values at these pointer locations and choose the smallest one and keep going.
+This leads to the **mergesort** algorithm as follows:
+
+```python
+def merge_sort(nums)
+    def _merge_sort(nums, start, end):
+        if len(nums) == 0:
+            raise ValueError("Empty input array!") 
+        
+        if start == end:  # base case
+            return [nums[start]]
+
+        mid = (start + end) // 2
+        _merge_sort(nums, start, mid)  # recurse on the left
+        _merge_sort(nums, mid + 1, end)  # recurse on the right
+
+        # merge two sorted arrays, in-place
+        i = 0
+        while i < mid + 1:
+            if nums[i] > nums[mid + 1]:
+                nums[mid + 1], nums[i] = nums[i], nums[mid + 1]
+            i += 1
+```
+---
+
 Split BST
 ----------
 
