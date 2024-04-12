@@ -67,6 +67,34 @@ def max_sum_subarray_rec(nums):
 
 ---
 
+Depth Sum
+--------
+
+Given a list where each location can contain either an integer or a list, compute the depth sum?
+
+E.g. $nums = [1, 2, [3, 4], 5]$, the depth sum is $ 1\*1 + 1\*2 + 2\*3 + 2\*4 + 1\*5 = 22 $.
+
+For $nums = [1, [2, [3]], 4]$, the depth sum is $1\*1 + 2\*2 + 3\*3 + 1\*4 = 18$.
+
+Let' say we already have an algorithm that computes the depth sum; how will it look like. We can iterate over the input 
+argument, in this case a list. If the element is an integer we can simply update the sum. If however, the element is a list, we 
+can use the algorithm **itself** to get the depth sum of the element; with depth **one** level **deeper**.
+
+What will the base case? The base case will be when the input consists of all integers and no nested lists.
+
+```python
+def depth_sum(nums):
+    def _depth_sum(nums, depth=0):
+        curr_sum = 0
+        for ele in nums:
+            if isinstance(ele, list):
+                curr_sum += _depth_sum(ele, depth+1)  # recurse one level deeper
+            else:
+                curr_sum += ele
+        return curr_sum
+    return _depth_sum(nums)
+```
+
 Merge Sort
 --------
 

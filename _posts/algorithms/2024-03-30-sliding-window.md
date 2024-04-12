@@ -26,12 +26,14 @@ def solution(nums, *args, **kwargs):
     return res
 ```
 
-$\rightarrow$For the case of finding **shortest** subsequence, the strategy is exactly reversed. The right pointer is moved until the 
+$\rightarrow$ For the case of finding **shortest** subsequence, the strategy is exactly reversed. The right pointer is moved until the 
 subarray condition is satisfied; at which point the left pointer is incremented until the condition is broken. 
+
+---
 
 Let's apply the sliding window technique to this problem: **Given a string find the longest substring without repeating characters.**
 - We will maintain a data structure to keep track of characters present in the substring
-defined by [left, right]. A obvious choice here is a *set*.  
+defined by [left, right]. An obvious choice here is a *set*.  
 - We then keep moving the right pointer increasing the subarray length.
 - The moment we reach a position where the character has already been encountered, the condition of *non-repeatedness* is broken. 
 - We then move the *left* pointer until we reach a position such that the character at that *left* location is the one causing the broken window condition. 
@@ -50,10 +52,19 @@ def longest_non_repeating(s):
         max_length = max(max_length, right - left + 1)
     return max_length
 ```
+---
 
 Let's consider another problem: 
 **Given an array of positive integers nums and a positive integer target, return the minimal length of a 
 subarray whose sum is greater than or equal to target. If there is no such subarray, return 0 instead.**
+
+The window condition here is that the elements of the window should sum to greater or equal to the target.
+
+- What if the window at given moment sums to less than the target? The only way to make the window sum greater 
+or equal to target is to move the right pointer.
+- What id the window at given moment sums to greater than target? In this case, since our goal is to find the shortest 
+window, the only way to shorten the window is to move the left pointer, in the hopes that the new window also satisfies the 
+window condition.
 
 ```python
 def min_subarray_sum(nums, target):
