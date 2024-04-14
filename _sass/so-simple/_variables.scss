@@ -9,11 +9,11 @@ $large: 1024px !default;
 $xlarge: 1280px !default;
 
 /* Fluid type */
-$base-font-size: 13px !default;
+$base-font-size: 12px !default;
 $min-vw: $small !default;
 $max-vw: $xlarge !default;
-$min-font-size: 13px !default;
-$max-font-size: 17px !default;
+$min-font-size: 11px !default;
+$max-font-size: 14px !default;
 
 /* Calculate Modular Scale */
 $modular-scale-1: 1.067 !default; /* small */
@@ -39,8 +39,8 @@ $h6-max: ($base-font-size / $modular-scale-2) !default;
 
 /* Font Families */
 $serif-font-family: "adobe-garamond-pro", serif !default;
-$sans-serif-font-family: "Work Sans", "Roboto", sans-serif !default;
-$monospace-font-family: "Roboto Mono", monospace !default;
+$sans-serif-font-family: "IBM Plex Mono", "Work Sans", "Roboto", sans-serif !default;
+$monospace-font-family: "IBM Plex Mono", monospace !default;
 
 $base-font-family: $sans-serif-font-family !default;
 $headline-font-family: $sans-serif-font-family !default;
