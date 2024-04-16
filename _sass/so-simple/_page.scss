@@ -208,6 +208,7 @@
 .layout--category,
 .layout--tag,
 .layout--collection,
+.layout--aboutme,
 .layout--search {
   .page-wrapper {
     max-width: $main-max-width;
@@ -215,6 +216,20 @@
 
   .page-title {
     text-align: center;
+  }
+}
+
+.layout--aboutme {
+  .page-wrapper {
+    @include breakpoint($large) {
+      display: grid;
+      grid-column-gap: 3em;
+      grid-row-gap: 0;
+      grid-template-columns: 175px 1fr;
+      -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+      justify-content: space-between;
+    }
   }
 }
 
