@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Graph traversals
+title: Binary Trees
 date:   2024-03-30 00:00:00 +0000
 categories:
   - algorithms
