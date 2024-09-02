@@ -5,23 +5,26 @@ layout: default
 <main>
     <article class="h-entry">
         <div class="page-wrapper">
-            <div class="page-content">
-                {% include page-author.html %}
-        
-                <div class="e-content">
-                  {{ content }}
-                </div>
-        
-                {% if page.share %}
-                  {% include social-share.html %}
-                {% endif %}
-        
-                {% if site.disqus.shortname %}
-                  {% include disqus-comments.html %}
-                {% endif %}
-        
-                {% include page-pagination.html %}
+
+          <div class="page-sidebar">
+            {% include page-author.html %}
+          </div>
+
+          <div class="page-content">
+              <div class="e-content">
+                {{ content }}
               </div>
+      
+              {% if page.share %}
+                {% include social-share.html %}
+              {% endif %}
+      
+              <!-- {% if site.disqus.shortname %}
+                {% include disqus-comments.html %}
+              {% endif %} -->
+      
+              {% include page-pagination.html %}
+          </div>
         </div>
     </article>
 </main>

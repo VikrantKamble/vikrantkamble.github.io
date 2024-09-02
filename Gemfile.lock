@@ -200,6 +200,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler
+  jekyll-paginate
   jekyll-theme-so-simple!
   rake (>= 12.3.3)
 

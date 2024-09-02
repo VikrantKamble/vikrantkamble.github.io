@@ -54,9 +54,11 @@ $$
 
 The domain of Odds lies in the range $[0, \infty)$. The natural logarithm of the above quantity is called *Log Odds* which lies in the range $(-\infty, \infty)$. This can be shown to be
 
-$$ \mathrm{Log Odds} = x^T w + b$$
+$$ \mathrm{Log Odds} = w^T x + b$$
 
 Thus we can interpret coefficient corresponding to a given predicting variable as: **the change in log odds for a unit change in a given variable keeping the rest variables fixed.**
+
+$\rightarrow$ LogOdds = perpendicular distance; and the value of LogOdds on the boundary is 0.
 
 ---
 

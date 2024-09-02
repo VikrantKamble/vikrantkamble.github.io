@@ -37,7 +37,7 @@ def tower_of_hanoi(n, start, middle, end):
         tower_of_hanoi(n-1, middle, start, end)
 ```
 
-As we saw [previously]({% post_url /algorithms/2024-03-30-traversals %}), a *depth-first* traversal of a *binary tree* can also be implemented recursively.
+As we saw [previously]({% post_url /algorithms/2024-03-30-binary-tree %}), a *depth-first* traversal of a *binary tree* can also be implemented recursively.
 
 ---
 
