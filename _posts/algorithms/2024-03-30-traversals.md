@@ -1,14 +1,14 @@
 ---
 layout: post
 title: Graph traversals
-date:   2024-03-30 00:00:00 +0000
+date: 2024-03-30 00:00:00 +0000
 categories:
   - algorithms
 usemathjax: True
 ---
 
-A *binary tree* is a tree data structure where every node has at most two children. 
-Each node can be of three categories - the `root` which has no parent, the `leaf` which have no children, 
+A _binary tree_ is a tree data structure where every node has at most two children.
+Each node can be of three categories - the `root` which has no parent, the `leaf` which have no children,
 and the inner nodes, which have at least one child. A node can be defined as follows:
 
 ```python
@@ -19,14 +19,19 @@ class TreeNode:
         self.right = right
 ```
 
-Here is an example binary tree: ![](/images/example_tree.png)
+Here is an example binary tree:
 
-A traversal can be defined as a strategy in which to visit every node of the tree. We can either go *wide* or go *deep*. 
+<p style="text-align:center;">
+<img src="/images/example_tree.png" width="400" align="center"/>
+</p>
 
-$\rightarrow$ For the case where we want to go *deep* first (depth-first traversal), we can define the following three recursive ways depending on 
-when the current node is *marked* as visited.
+A traversal can be defined as a strategy in which to visit every node of the tree. We can either go _wide_ or go _deep_.
+
+$\rightarrow$ For the case where we want to go _deep_ first (depth-first traversal), we can define the following three recursive ways depending on
+when the current node is _marked_ as visited.
 
 - **Pre-order** traversal
+
 ```python
 def pre_order_traversal(node) -> None:
     if node is not None:
@@ -36,6 +41,7 @@ def pre_order_traversal(node) -> None:
 ```
 
 - **In-order** traversal
+
 ```python
 def in_order_traversal(node) -> None:
     if node is not None:
@@ -45,6 +51,7 @@ def in_order_traversal(node) -> None:
 ```
 
 - **Post-order** traversal
+
 ```python
 def post_order_traversal(node) -> None:
     if node is not None:
@@ -53,8 +60,8 @@ def post_order_traversal(node) -> None:
         print(node.val)
 ```
 
-$\rightarrow$ For the case where we want to go *wide* first (breadth-first search), we can use 
-a *queue* for the traversal. For more details on *queue*, refer to this [page]({% post_url /algorithms/2024-03-31-common-ds %}). Note that this traversal basically prints the values on a *per-level* basis, hence
+$\rightarrow$ For the case where we want to go _wide_ first (breadth-first search), we can use
+a _queue_ for the traversal. For more details on _queue_, refer to this [page]({% post_url /algorithms/2024-03-31-common-ds %}). Note that this traversal basically prints the values on a _per-level_ basis, hence
 it is also called as **Level-order** traversal.
 
 ```python
@@ -72,22 +79,25 @@ def bfs(root) -> None:
         if node.right:
             queue.append(node.right)
 ```
+
 ---
 
-Binary Search tree
-===========
+# Binary Search tree
 
-A binary search tree (BST) is a binary tree where for **every** node, the value of the left child is *less than or equal* to the current node value, and the value of the right child is *greater* than the current node value. Here is one example: ![](/images/bst.png)
+A binary search tree (BST) is a binary tree where for **every** node, the value of the left child is _less than or equal_ to the current node value, and the value of the right child is _greater_ than the current node value. Here is one example:
+
+<p style="text-align:center;">
+<img src="/images/bst.png" width="300" align="center"/>
+</p>
 
 **Note**: An `in-order` traversal of a BST will lead to values in sorted order.
 
 ---
 
-Shortest paths
-============
+# Shortest paths
 
-A BFS is very useful when computing shortest paths. Let us consider a **binary** matrix where the goal is 
-to start at the *top-leftmost* position and reach the *bottom-rightmost* position in the **shortest** amount of steps. 
+A BFS is very useful when computing shortest paths. Let us consider a **binary** matrix where the goal is
+to start at the _top-leftmost_ position and reach the _bottom-rightmost_ position in the **shortest** amount of steps.
 A cell can be visited only if the matrix value at that location is 0 and all the adjacent cells of the path are 8-directionally connected (share an edge or a corner)
 
 ```python
@@ -118,16 +128,16 @@ def shortest_path_binary(grid):
             neighbor = (node[0] + x, node[1] + y)
             if (
                 (neighbor[0] >= 0) and  # boundry condition
-                (neighbor[0] < n) and 
-                (neighbor[1] >= 0) and 
-                (neighbor[1] < m) and 
+                (neighbor[0] < n) and
+                (neighbor[1] >= 0) and
+                (neighbor[1] < m) and
                 (grid[neighbor[0]][neighbor[1]] == 1) and  # visit condition
                 (neighbor not in seen)  # avoid looping back
             ):
                 seen.add(neighbor)
                 queue.append(neighbor)
                 len_queue.append(prev_length + 1)
-    
+
     # if we reach here, we haven't found any path
     return -1
 
