@@ -165,3 +165,5 @@ __s3_test.txt
 .history/
 
 _site/
+
+.DS_Store
