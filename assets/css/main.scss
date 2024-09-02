@@ -6,3 +6,17 @@ sitemap: false
 @charset "utf-8";
 
 @import "so-simple";
+
+@font-face {
+    font-family: "IA Writer Quattro S";
+    font-style: normal;
+    font-weight: 400;
+    src: url("../fonts/iAWriterQuattroS-Regular.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Iosevka Extended";
+    font-style: normal;
+    font-weight: 400;
+    src: url("../fonts/Iosevka-Extended-04.ttf") format("truetype");
+}
